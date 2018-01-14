@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.ui.swing.component
 
 import java.awt.Color
-import java.awt.event.{ ActionEvent, ActionListener }
 
 import scala.swing.{ Component, Dimension, ScrollPane, Table }
 import scala.swing.event.{ MouseButtonEvent, MouseEvent }
@@ -98,18 +98,16 @@ private[swing] class FilterTable(headerTitle: String) extends ScrollPane {
 
   def setFocusable(focusable: Boolean): Unit = { table.focusable = focusable }
 
-  def getRowCount = model.getRowCount
+  def getRowCount: Int = model.getRowCount
 
-  def getRegex(row: Int) = table(row, 0).asInstanceOf[String]
+  def getRegex(row: Int): String = table(row, 0).asInstanceOf[String]
 
-  def getRegexs = (for (i <- 0 until getRowCount) yield getRegex(i)).toList
+  def getRegexs: List[String] = (for (i <- 0 until getRowCount) yield getRegex(i)).toList
 
   private def initPopupMenu(): Unit = {
     val popup = new JPopupMenu
     val menuItem = new JMenuItem("Delete")
-    menuItem.addActionListener(new ActionListener {
-      def actionPerformed(e: ActionEvent): Unit = removeSelectedRow()
-    })
+    menuItem.addActionListener(_ => removeSelectedRow())
 
     popup.add(menuItem)
 

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.cache
 
 import io.gatling.commons.util.NumberHelper._
@@ -24,8 +25,8 @@ import io.netty.handler.codec.DateFormatter
 
 trait ExpiresSupport {
 
-  val MaxAgePrefix = "max-age="
-  val MaxAgeZero = MaxAgePrefix + "0"
+  private val MaxAgePrefix = "max-age="
+  private val MaxAgeZero = MaxAgePrefix + "0"
 
   def extractMaxAgeValue(s: String): Option[Long] = {
     val index = s.indexOf(MaxAgePrefix)

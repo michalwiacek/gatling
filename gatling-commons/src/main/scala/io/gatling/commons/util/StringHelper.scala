@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.commons.util
 
 import java.lang.{ Long => JLong, StringBuilder => JStringBuilder }
@@ -47,20 +48,6 @@ object StringHelper {
     buff.append(JLong.toString(shifted.toLong, 16))
   }.toString
 
-  private val StringBuilderPool = new ThreadLocal[StringBuilder] {
-    override def initialValue() = new StringBuilder(512)
-  }
-
-  /**
-   * BEWARE: MUSN'T APPEND TO ITSELF!
-   * @return a pooled StringBuilder
-   */
-  def stringBuilder(): StringBuilder = {
-    val sb = StringBuilderPool.get
-    sb.setLength(0)
-    sb
-  }
-
   implicit class RichString(val string: String) extends AnyVal {
 
     def clean = {
@@ -93,7 +80,12 @@ object StringHelper {
         string
     }
 
-    def unsafeChars: Array[Char] = TheUnsafe.getObject(string, StringValueFieldOffset).asInstanceOf[Array[Char]]
+    def unsafeChars: Array[Char] =
+      if (JavaRuntime.IsJava8) {
+        TheUnsafe.getObject(string, StringValueFieldOffset).asInstanceOf[Array[Char]]
+      } else {
+        string.toCharArray
+      }
 
     def isConstantTimeEqual(other: String): Boolean =
       MessageDigest.isEqual(string.getBytes(UTF_8), other.getBytes(UTF_8))

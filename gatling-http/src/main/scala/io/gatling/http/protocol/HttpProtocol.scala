@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.protocol
 
 import java.net.InetAddress
@@ -92,7 +93,7 @@ object HttpProtocol extends StrictLogging {
       ),
       responsePart = HttpProtocolResponsePart(
         followRedirect = true,
-        maxRedirects = None,
+        maxRedirects = 20,
         strict302Handling = false,
         discardResponseChunks = true,
         responseTransformer = None,
@@ -161,7 +162,7 @@ case class HttpProtocolRequestPart(
 
 case class HttpProtocolResponsePart(
     followRedirect:                Boolean,
-    maxRedirects:                  Option[Int],
+    maxRedirects:                  Int,
     strict302Handling:             Boolean,
     discardResponseChunks:         Boolean,
     responseTransformer:           Option[PartialFunction[Response, Response]],

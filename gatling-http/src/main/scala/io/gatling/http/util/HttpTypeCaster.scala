@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.util
 
 import java.net.InetAddress
@@ -26,7 +27,7 @@ import org.asynchttpclient.AsyncHttpClient
 
 object HttpTypeCaster {
 
-  implicit val AhcTypeCaster = new TypeCaster[AsyncHttpClient] {
+  implicit val AhcTypeCaster: TypeCaster[AsyncHttpClient] = new TypeCaster[AsyncHttpClient] {
     @throws[ClassCastException]
     override def cast(value: Any): AsyncHttpClient =
       value match {
@@ -41,7 +42,7 @@ object HttpTypeCaster {
       }
   }
 
-  implicit val NameResolverTypeCaster = new TypeCaster[NameResolver[InetAddress]] {
+  implicit val NameResolverTypeCaster: TypeCaster[NameResolver[InetAddress]] = new TypeCaster[NameResolver[InetAddress]] {
     @throws[ClassCastException]
     override def cast(value: Any): NameResolver[InetAddress] =
       value match {
@@ -56,7 +57,7 @@ object HttpTypeCaster {
       }
   }
 
-  implicit val InetAddressTypeCaster = new TypeCaster[InetAddress] {
+  implicit val InetAddressTypeCaster: TypeCaster[InetAddress] = new TypeCaster[InetAddress] {
     @throws[ClassCastException]
     override def cast(value: Any): InetAddress =
       value match {
@@ -71,7 +72,7 @@ object HttpTypeCaster {
       }
   }
 
-  implicit val CookieJarTypeCaster = new TypeCaster[CookieJar] {
+  implicit val CookieJarTypeCaster: TypeCaster[CookieJar] = new TypeCaster[CookieJar] {
     @throws[ClassCastException]
     override def cast(value: Any): CookieJar =
       value match {

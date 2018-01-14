@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.feeder
 
 import java.io.{ File, IOException, InputStream }
@@ -40,7 +41,7 @@ class SitemapParserSpec extends BaseSpec with ValidationValues {
   }
 
   it should "parse valid sitemap file" in {
-    val resource = Resource.resolveResource(Paths.get(""), "", "sitemap.xml")
+    val resource = Resource.resolveResource(Paths.get(""), "sitemap.xml")
     val records = resource.map(SitemapParser.parse(_).toArray)
     verifySitemapRecords(records.succeeded)
   }

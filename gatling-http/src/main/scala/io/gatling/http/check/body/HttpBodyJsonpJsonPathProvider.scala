@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.check.body
 
 import io.gatling.commons.validation._
@@ -25,8 +26,8 @@ import io.gatling.http.response.Response
 
 object HttpBodyJsonpJsonPathProvider {
 
-  val JsonpRegex = """^\w+(?:\[\"\w+\"\]|\.\w+)*\((.*)\);?\s*$""".r
-  val JsonpRegexFailure = "Regex could not extract JSON object from JSONP response".failure
+  private val JsonpRegex = """^\w+(?:\[\"\w+\"\]|\.\w+)*\((.*)\);?\s*$""".r
+  private val JsonpRegexFailure = "Regex could not extract JSON object from JSONP response".failure
 
   def parseJsonpString(string: String, jsonParsers: JsonParsers): Validation[Any] = string match {
     case JsonpRegex(jsonp) => jsonParsers.safeParse(jsonp)

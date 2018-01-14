@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.http
 
 import scala.util.{ Failure, Success, Try }
@@ -28,16 +29,14 @@ object Netty {
   implicit class PimpedChannelFuture(val cf: ChannelFuture) extends AnyVal {
 
     def addScalaListener(f: Try[Channel] => Unit): ChannelFuture =
-      cf.addListener(new ChannelFutureListener {
-        override def operationComplete(future: ChannelFuture): Unit = {
-          val outcome =
-            if (future.isSuccess) {
-              Success(future.channel)
-            } else {
-              Failure(future.cause)
-            }
-          f(outcome)
-        }
+      cf.addListener((future: ChannelFuture) => {
+        val outcome =
+          if (future.isSuccess) {
+            Success(future.channel)
+          } else {
+            Failure(future.cause)
+          }
+        f(outcome)
       })
   }
 

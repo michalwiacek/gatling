@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.response
 
 import java.nio.charset.Charset
@@ -133,10 +134,14 @@ class ResponseBuilder(
     updateEndTimestamp()
   }
 
-  def accumulate(headers: HttpHeaders): Unit = {
-    this.headers = headers
-    storeHtmlOrCss = inferHtmlResources && (isHtml(headers) || isCss(headers))
-  }
+  def accumulate(headers: HttpHeaders): Unit =
+    if (this.headers eq ResponseBuilder.EmptyHeaders) {
+      this.headers = headers
+      storeHtmlOrCss = inferHtmlResources && (isHtml(headers) || isCss(headers))
+    } else {
+      // trailing headers, wouldn't contain ContentType
+      this.headers.add(headers)
+    }
 
   def accumulate(bodyPart: HttpResponseBodyPart): Unit = {
 
@@ -202,8 +207,8 @@ class ResponseBuilder(
     val rawResponse = HttpResponse(request, nettyRequest, status, headers, body, checksums, bodyLength, resolvedCharset, startTimestamp, endTimestamp)
 
     responseTransformer match {
-      case None              => rawResponse
       case Some(transformer) => transformer.applyOrElse(rawResponse, ResponseBuilder.Identity)
+      case _                 => rawResponse
     }
   }
 

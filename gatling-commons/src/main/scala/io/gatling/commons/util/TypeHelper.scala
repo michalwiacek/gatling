@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.commons.util
 
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 import io.gatling.commons.NotNothing
 import io.gatling.commons.validation._
+import io.gatling.commons.util.Throwables._
 
 trait TypeCaster[T] {
 
@@ -57,12 +60,20 @@ trait LowPriorityTypeCaster {
 
 object TypeCaster extends LowPriorityTypeCaster {
 
+  private def safely[T](f: => T): Validation[T] =
+    try { f.success }
+    catch {
+      case NonFatal(e) =>
+        e.detailedMessage.failure
+    }
+
   implicit val BooleanCaster = new TypeCaster[Boolean] {
     @throws[ClassCastException]
     override def cast(value: Any): Boolean =
       value match {
         case v: Boolean           => v
         case v: java.lang.Boolean => v.booleanValue
+        case v: String            => v.toBoolean
         case _                    => throw new ClassCastException(cceMessage(value, classOf[Boolean]))
       }
 
@@ -70,6 +81,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case true | java.lang.Boolean.TRUE   => TrueSuccess
         case false | java.lang.Boolean.FALSE => FalseSuccess
+        case s: String                       => safely(s.toBoolean)
         case _                               => cceMessage(value, classOf[Boolean]).failure
       }
   }
@@ -80,6 +92,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Byte           => v
         case v: java.lang.Byte => v.byteValue
+        case v: String         => v.toByte
         case _                 => throw new ClassCastException(cceMessage(value, classOf[Byte]))
       }
 
@@ -87,6 +100,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Byte           => v.success
         case v: java.lang.Byte => v.byteValue.success
+        case v: String         => safely(v.toByte)
         case _                 => cceMessage(value, classOf[Byte]).failure
       }
   }
@@ -97,6 +111,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Short           => v
         case v: java.lang.Short => v.shortValue
+        case v: String          => v.toShort
         case _                  => throw new ClassCastException(cceMessage(value, classOf[Short]))
       }
 
@@ -104,6 +119,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Short           => v.success
         case v: java.lang.Short => v.shortValue.success
+        case v: String          => safely(v.toShort)
         case _                  => cceMessage(value, classOf[Short]).failure
       }
   }
@@ -114,6 +130,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Int               => v
         case v: java.lang.Integer => v.intValue
+        case v: String            => v.toInt
         case _                    => throw new ClassCastException(cceMessage(value, classOf[Int]))
       }
 
@@ -121,6 +138,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Int               => v.success
         case v: java.lang.Integer => v.intValue.success
+        case v: String            => safely(v.toInt)
         case _                    => cceMessage(value, classOf[Int]).failure
       }
   }
@@ -131,6 +149,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Long           => v
         case v: java.lang.Long => v.longValue
+        case v: String         => v.toLong
         case _                 => throw new ClassCastException(cceMessage(value, classOf[Long]))
       }
 
@@ -138,6 +157,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Long           => v.success
         case v: java.lang.Long => v.longValue.success
+        case v: String         => safely(v.toLong)
         case _                 => cceMessage(value, classOf[Long]).failure
       }
   }
@@ -148,6 +168,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Float           => v
         case v: java.lang.Float => v.floatValue
+        case v: String          => v.toFloat
         case _                  => throw new ClassCastException(cceMessage(value, classOf[Float]))
       }
 
@@ -155,6 +176,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Float           => v.success
         case v: java.lang.Float => v.floatValue.success
+        case v: String          => safely(v.toFloat)
         case _                  => cceMessage(value, classOf[Float]).failure
       }
   }
@@ -165,6 +187,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Double           => v
         case v: java.lang.Double => v.doubleValue
+        case v: String           => v.toDouble
         case _                   => throw new ClassCastException(cceMessage(value, classOf[Double]))
       }
 
@@ -172,6 +195,7 @@ object TypeCaster extends LowPriorityTypeCaster {
       value match {
         case v: Double           => v.success
         case v: java.lang.Double => v.doubleValue.success
+        case v: String           => safely(v.toDouble)
         case _                   => cceMessage(value, classOf[Double]).failure
       }
   }
@@ -180,16 +204,18 @@ object TypeCaster extends LowPriorityTypeCaster {
     @throws[ClassCastException]
     override def cast(value: Any): Char =
       value match {
-        case v: Char                => v
-        case v: java.lang.Character => v.charValue
-        case _                      => throw new ClassCastException(cceMessage(value, classOf[Char]))
+        case v: Char                    => v
+        case v: java.lang.Character     => v.charValue
+        case v: String if v.length == 1 => v.charAt(0)
+        case _                          => throw new ClassCastException(cceMessage(value, classOf[Char]))
       }
 
     override def validate(value: Any): Validation[Char] =
       value match {
-        case v: Char                => v.success
-        case v: java.lang.Character => v.charValue.success
-        case _                      => cceMessage(value, classOf[Char]).failure
+        case v: Char                    => v.success
+        case v: java.lang.Character     => v.charValue.success
+        case v: String if v.length == 1 => v.charAt(0).success
+        case _                          => cceMessage(value, classOf[Char]).failure
       }
   }
 
@@ -213,6 +239,11 @@ object TypeHelper {
   val NullValueFailure = "Value is null".failure
 
   implicit class TypeValidator(val value: Any) extends AnyVal {
+
+    def as[T: TypeCaster: ClassTag: NotNothing]: T = Option(value) match {
+      case Some(v) => implicitly[TypeCaster[T]].cast(v)
+      case _       => throw new ClassCastException(NullValueFailure.message)
+    }
 
     def asOption[T: TypeCaster: ClassTag: NotNothing]: Option[T] = Option(value) match {
       case Some(v) => Some(implicitly[TypeCaster[T]].cast(v))

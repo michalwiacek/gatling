@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.cookie
 
 import io.gatling.commons.validation._
@@ -28,7 +29,7 @@ object CookieSupport {
   // import optimized TypeCaster
   import HttpTypeCaster._
 
-  val CookieJarAttributeName = SessionPrivateAttributes.PrivateAttributePrefix + "http.cookies"
+  val CookieJarAttributeName: String = SessionPrivateAttributes.PrivateAttributePrefix + "http.cookies"
   private val NoCookieJarFailure = "No CookieJar in session".failure
 
   def cookieJar(session: Session): Option[CookieJar] = session(CookieJarAttributeName).asOption[CookieJar]
@@ -44,7 +45,7 @@ object CookieSupport {
   private def getOrCreateCookieJar(session: Session) =
     cookieJar(session) match {
       case Some(cookieJar) => cookieJar
-      case _               => CookieJar(Map.empty)
+      case _               => CookieJar.Empty
     }
 
   def storeCookies(session: Session, uri: Uri, cookies: List[Cookie]): Session = {
@@ -57,13 +58,13 @@ object CookieSupport {
     session.set(CookieJarAttributeName, cookieJar.add(domain, path, List(cookie)))
   }
 
-  def getCookieValue(session: Session, domain: String, path: String, name: String): Validation[String] =
+  def getCookieValue(session: Session, domain: String, path: String, name: String, secure: Boolean): Validation[String] =
     cookieJar(session) match {
       case Some(cookieJar) =>
-        cookieJar.get(domain, path, isSecuredUri = None).filter(_.name == name) match {
-          case Nil           => s"No Cookie matching parameters domain=$domain, path=$path, name=$name".failure
+        cookieJar.get(domain, path, secure = secure).filter(_.name == name) match {
+          case Nil           => s"No Cookie matching parameters domain=$domain, path=$path, name=$name, secure=$secure".failure
           case cookie :: Nil => cookie.value.success
-          case _             => s"Found more than one matching cookie domain=$domain, path=$path, name=$name !!?".failure
+          case _             => s"Found more than one matching cookie domain=$domain, path=$path, name=$name, secure=$secure!!?".failure
         }
       case _ => NoCookieJarFailure
     }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.util
 
 object Shard {
@@ -29,6 +30,7 @@ object Shard {
     }
 
   def shard(total: Long, bucketNumber: Int, buckets: Int): Shard = {
+    require(bucketNumber < buckets, s"bucketNumber=$bucketNumber should be less than buckets=$buckets")
     val offset = sumFromZero(total, buckets, bucketNumber - 1)
     val value = sumFromZero(total, buckets, bucketNumber) - offset
     Shard(offset.toInt, value.toInt)

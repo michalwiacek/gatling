@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.action
 
 import io.gatling.commons.validation._
@@ -29,7 +30,7 @@ object SingletonFeed {
 
 class SingletonFeed[T](val feeder: Feeder[T]) extends BaseActor {
 
-  def receive = {
+  def receive: Receive = {
     case FeedMessage(session, number, controller, next) =>
 
       def translateRecord(record: Record[T], suffix: Int): Record[T] = record.map { case (key, value) => (key + suffix) -> value }
@@ -64,6 +65,12 @@ class SingletonFeed[T](val feeder: Feeder[T]) extends BaseActor {
 
       next ! newSession
   }
+
+  override def postStop(): Unit =
+    feeder match {
+      case closeable: AutoCloseable => closeable.close()
+      case _                        =>
+    }
 }
 
 case class FeedMessage(session: Session, number: Expression[Int], controller: ActorRef, next: Action)

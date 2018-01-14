@@ -151,11 +151,6 @@ This product depends on HdrHistogram, distributed by Gil Tene:
   * License: license/LICENSE.hdrhistogram.bsd2.txt (BSD 2-Clause License)
   * Homepage: https://github.com/HdrHistogram/HdrHistogram
 
-This product depends on ConcurrentLinkedHashmap, distributed by Ben Manes:
-
-  * License: license/LICENSE.concurrentlinkedhashmap.al20.txt (Apache License v2.0)
-  * Homepage: https://github.com/ben-manes/concurrentlinkedhashmap
-
 This product depends on BouncyCastle, distributed by the Legion of the Bouncy Castle:
 
   * License: license/LICENSE.bouncycastle.mit.txt (MIT License)
@@ -203,13 +198,18 @@ This product depends on Highcharts, distributed by Highsoft:
 
 This product depends on Pebble, distributed by Mitchell Bösecke:
 
-    * License: license/LICENSE.pebble.bsd3.txt (BSD 3-Clause License)
-    * Homepage: http://www.mitchellbosecke.com/pebble/home
+  * License: license/LICENSE.pebble.bsd3.txt (BSD 3-Clause License)
+  * Homepage: http://www.mitchellbosecke.com/pebble/home
 
 This product depends on Coverity Security Library, distributed by Coverity, Inc.:
 
   * License: license/LICENSE.coverity.bsd3.txt (BSD 3-Clause License)
   * Homepage: https://github.com/coverity/coverity-security-library
+
+This product depends on SimpleFlatMapper, distributed by Arnaud Roger:
+
+  * License: license/LICENSE.sfm.mit.txt (BSD 3-Clause License)
+  * Homepage: https://github.com/arnaudroger/SimpleFlatMapper
 
 Test and documentation dependencies
 ===================================
@@ -238,11 +238,6 @@ This product depends on H2, distributed by H2 Group:
 
   * License: license/LICENSE.h2.epl10.txt (Eclipse Public License v1.0)
   * Homepage: http://h2database.com
-
-This product depends on FFMQ, distributed by Timewalker:
-
-  * License: license/LICENSE.ffmq.lgpl3.txt (Gnu Lesser General Public License Version 3)
-  * Homepage: http://timewalker74.github.io/ffmq/
 
 This product depends on JMH, distributed by OpenJDK:
 

@@ -7,23 +7,21 @@ This SBT plugin integrates Gatling with SBT, allowing to use Gatling as a testin
 Versions
 ========
 
-Check out available versions on `Bintray <https://bintray.com/gatling/sbt-plugins/gatling-sbt/view#>`.
+Check out available versions on `Bintray <https://bintray.com/gatling/sbt-plugins/gatling-sbt/view>`_.
 
-Beware that milestones (M versions) are undocumented and releases for Gatling customers.
+Beware that milestones (M versions) are undocumented and released for GatlingCorp customers.
 
 Setup
 =====
 
-Snapshots are available on Sonatype.
-
 In ``project/plugins.sbt``, add::
 
-  addSbtPlugin("io.gatling" % "gatling-sbt" % "2.2.0")
+  addSbtPlugin("io.gatling" % "gatling-sbt" % "2.2.2")
 
 You'll also need those two dependencies::
 
-  "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.2.2" % "test"
-  "io.gatling"            % "gatling-test-framework"    % "2.2.2" % "test"
+  "io.gatling.highcharts" % "gatling-charts-highcharts" % "2.3.0" % "test"
+  "io.gatling"            % "gatling-test-framework"    % "2.3.0" % "test"
 
 And then, in your ``.scala`` build::
 
@@ -34,14 +32,7 @@ And then, in your ``.scala`` build::
                      .settings(libraryDependencies ++= /* Gatling dependencies */)
 
 
-or in your ``.sbt`` file, for SBT up to 0.13.5::
-
-  val test = project.in(file("."))
-    .enablePlugins(GatlingPlugin)
-    .settings(libraryDependencies ++= /* Gatling dependencies */)
-
-
-or for 0.13.6 and later::
+or in your ``.sbt`` file, for SBT 0.13.6 and later::
 
   enablePlugins(GatlingPlugin)
 
@@ -90,6 +81,13 @@ For the ``GatlingIt`` configuration :
 
 * By default, Gatling simulations must be in ``src/it/scala``, configurable using the ``scalaSource in GatlingIt`` setting.
 * By default, Gatling reports are written to ``target/gatling-it``, configurable using the ``target in GatlingIt`` setting.
+
+If you override the default settings, you need to reset them on the project, eg:
+
+::
+
+  scalaSource in Gatling := sourceDirectory.value / "gatling" / "scala"
+  lazy val root = (project in file(".")).settings(inConfig(Gatling)(Defaults.testSettings): _*)
 
 Additional tasks
 ================

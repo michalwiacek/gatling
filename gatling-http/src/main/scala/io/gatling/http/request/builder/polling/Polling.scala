@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.request.builder.polling
 
 import scala.concurrent.duration.FiniteDuration
@@ -22,8 +23,9 @@ import io.gatling.http.action.async.polling.{ PollingStartBuilder, PollingStopBu
 import io.gatling.http.request.builder.HttpRequestBuilder
 
 object Polling {
-  val DefaultPollerName = SessionPrivateAttributes.PrivateAttributePrefix + "http.polling"
+  private val DefaultPollerName = SessionPrivateAttributes.PrivateAttributePrefix + "http.polling"
 }
+
 class Polling(pollerName: String = Polling.DefaultPollerName) {
 
   def pollerName(pollerName: String) = new Polling(pollerName)

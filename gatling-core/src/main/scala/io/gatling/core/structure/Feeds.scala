@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.structure
 
 import io.gatling.core.action.builder.FeedBuilder
-import io.gatling.core.feeder.FeederBuilder
+import io.gatling.core.feeder._
 import io.gatling.core.session._
 
 object Feeds {
 
-  val oneExpression = 1.expressionSuccess
+  private val OneExpression = 1.expressionSuccess
 }
 
 trait Feeds[B] extends Execs[B] {
@@ -32,6 +33,6 @@ trait Feeds[B] extends Execs[B] {
    * @param feederBuilder the feeder from which the values will be loaded
    * @param number the number of records to be polled (default 1)
    */
-  def feed(feederBuilder: FeederBuilder[_], number: Expression[Int] = Feeds.oneExpression): B =
+  def feed(feederBuilder: FeederBuilder, number: Expression[Int] = Feeds.OneExpression): B =
     exec(new FeedBuilder(feederBuilder, number))
 }

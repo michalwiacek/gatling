@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.cache
 
 import scala.annotation.tailrec
@@ -27,13 +28,13 @@ import org.asynchttpclient.uri.Uri
 
 object PermanentRedirectCacheKey {
   def apply(request: Request): PermanentRedirectCacheKey =
-    new PermanentRedirectCacheKey(request.getUri, new Cookies(request.getCookies))
+    new PermanentRedirectCacheKey(request.getUri, Cookies(request.getCookies))
 }
 
 case class PermanentRedirectCacheKey(uri: Uri, cookies: Cookies)
 
 object PermanentRedirectCacheSupport {
-  val HttpPermanentRedirectCacheAttributeName = SessionPrivateAttributes.PrivateAttributePrefix + "http.cache.redirects"
+  val HttpPermanentRedirectCacheAttributeName: String = SessionPrivateAttributes.PrivateAttributePrefix + "http.cache.redirects"
 }
 
 trait PermanentRedirectCacheSupport {
@@ -50,7 +51,8 @@ trait PermanentRedirectCacheSupport {
 
   private[this] def permanentRedirect(session: Session, request: Request): Option[(Uri, Int)] = {
 
-    @tailrec def permanentRedirectRec(from: PermanentRedirectCacheKey, redirectCount: Int): Option[(Uri, Int)] =
+    @tailrec
+    def permanentRedirectRec(from: PermanentRedirectCacheKey, redirectCount: Int): Option[(Uri, Int)] =
 
       httpPermanentRedirectCacheHandler.getEntry(session, from) match {
         case Some(toUri) => permanentRedirectRec(new PermanentRedirectCacheKey(toUri, from.cookies), redirectCount + 1)
@@ -71,7 +73,7 @@ trait PermanentRedirectCacheSupport {
   }
 
   def applyPermanentRedirect(origTx: HttpTx): HttpTx =
-    if (origTx.request.config.httpComponents.httpProtocol.requestPart.cache)
+    if (origTx.request.config.httpComponents.httpProtocol.requestPart.cache) {
       permanentRedirect(origTx.session, origTx.request.ahcRequest) match {
         case Some((targetUri, redirectCount)) =>
 
@@ -82,8 +84,9 @@ trait PermanentRedirectCacheSupport {
             redirectCount = origTx.redirectCount + redirectCount
           )
 
-        case None => origTx
+        case _ => origTx
       }
-    else
+    } else {
       origTx
+    }
 }

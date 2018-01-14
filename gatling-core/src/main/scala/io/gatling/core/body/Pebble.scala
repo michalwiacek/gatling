@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.body
 
 import java.io.Writer
@@ -32,7 +33,7 @@ import com.typesafe.scalalogging.StrictLogging
 
 object Pebble extends StrictLogging {
 
-  private val Engine = new PebbleEngine.Builder().loader(new StringLoader).build
+  private val Engine = new PebbleEngine.Builder().autoEscaping(false).loader(new StringLoader).build
 
   private def matchMap(map: Map[String, Any]): JMap[String, AnyRef] = {
     val jMap: JMap[String, AnyRef] = new JHashMap(map.size)
@@ -80,7 +81,7 @@ object StringBuilderWriter {
 
 class StringBuilderWriter extends Writer {
 
-  val stringBuilder = new JStringBuilder
+  private val stringBuilder = new JStringBuilder
 
   override def flush(): Unit = {}
 

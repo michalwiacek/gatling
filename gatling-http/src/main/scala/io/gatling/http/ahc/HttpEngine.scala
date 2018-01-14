@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.ahc
 
 import scala.util.control.NonFatal
 
+import io.gatling.commons.util.Throwables._
 import io.gatling.core.CoreComponents
 import io.gatling.core.session._
 import io.gatling.core.util.NameGen
@@ -25,12 +27,10 @@ import io.gatling.http.HeaderValues._
 import io.gatling.http.fetch.ResourceFetcher
 import io.gatling.http.protocol.{ HttpComponents, HttpProtocol }
 import io.gatling.http.request.builder.Http
-import io.gatling.http.resolver.{ CacheOverrideNameResolver, ExtendedDnsNameResolver }
 import io.gatling.http.util.HttpTypeCaster
 
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.StrictLogging
-import io.netty.resolver.dns.DefaultDnsCache
 import org.asynchttpclient.{ AsyncHttpClient, RequestBuilder }
 
 object HttpEngine {
@@ -41,13 +41,11 @@ object HttpEngine {
 }
 
 class HttpEngine(
-    system:                       ActorSystem,
-    protected val coreComponents: CoreComponents,
-    ahcFactory:                   AhcFactory
+    system:             ActorSystem,
+    val coreComponents: CoreComponents,
+    val ahcFactory:     AhcFactory
 )
   extends ResourceFetcher with NameGen with StrictLogging {
-
-  def defaultDnsNameResolver: ExtendedDnsNameResolver = ahcFactory.defaultDnsNameResolver
 
   def httpClient(session: Session, httpProtocol: HttpProtocol): (Session, AsyncHttpClient) =
     if (httpProtocol.enginePart.shareClient) {
@@ -75,7 +73,7 @@ class HttpEngine(
 
       if (httpProtocol.enginePart.perUserNameResolution) {
         // eager load
-        val _ = defaultDnsNameResolver
+        val _ = ahcFactory.defaultDnsNameResolver
       }
 
       httpProtocol.warmUpUrl match {
@@ -93,13 +91,15 @@ class HttpEngine(
           try {
             ahcFactory.defaultAhc.executeRequest(requestBuilder.build).get
           } catch {
-            case NonFatal(e) => logger.info(s"Couldn't execute warm up request $url", e)
+            case NonFatal(e) =>
+              if (logger.underlying.isDebugEnabled)
+                logger.debug(s"Couldn't execute warm up request $url", e)
+              else
+                logger.info(s"Couldn't execute warm up request $url: ${e.detailedMessage}")
           }
 
         case _ =>
           val expression = "foo".expressionSuccess
-
-          implicit val protocol = this
 
           Http(expression)
             .get(expression)

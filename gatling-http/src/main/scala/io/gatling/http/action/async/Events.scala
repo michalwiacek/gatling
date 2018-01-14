@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.action.async
 
 import io.gatling.core.action.Action
@@ -32,4 +33,4 @@ trait UserAction {
 case class SetCheck(requestName: String, check: AsyncCheck, next: Action, session: Session) extends UserAction
 case class CancelCheck(requestName: String, next: Action, session: Session) extends UserAction
 case class Close(requestName: String, next: Action, session: Session) extends UserAction
-case class Reconciliate(requestName: String, next: Action, session: Session) extends UserAction
+case class Reconcile(requestName: String, next: Action, session: Session) extends UserAction

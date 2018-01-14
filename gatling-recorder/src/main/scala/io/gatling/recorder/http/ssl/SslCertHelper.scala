@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.http.ssl
 
 import java.io._
@@ -50,11 +51,14 @@ private[recorder] object SslCertUtil extends StrictLogging {
 
   Security.addProvider(new BouncyCastleProvider)
 
-  def readPEM(file: InputStream): Any = withCloseable(new PEMParser(new InputStreamReader(file))) { _.readObject }
+  def readPEM(file: InputStream): Any =
+    withCloseable(new PEMParser(new InputStreamReader(file))) { _.readObject }
 
-  def writePEM(obj: Any, os: OutputStream): Unit = withCloseable(new JcaPEMWriter(new OutputStreamWriter(os))) { _.writeObject(obj) }
+  def writePEM(obj: Any, os: OutputStream): Unit =
+    withCloseable(new JcaPEMWriter(new OutputStreamWriter(os))) { _.writeObject(obj) }
 
-  def certificateFromHolder(certHolder: X509CertificateHolder) = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certHolder)
+  def certificateFromHolder(certHolder: X509CertificateHolder): X509Certificate =
+    new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME).getCertificate(certHolder)
 
   def newRSAKeyPair: KeyPair = {
     val kpGen = KeyPairGenerator.getInstance("RSA")

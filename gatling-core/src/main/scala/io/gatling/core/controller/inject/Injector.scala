@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.controller.inject
 
 import scala.collection.breakOut
@@ -20,7 +21,6 @@ import scala.concurrent.duration._
 
 import io.gatling.commons.util.{ LongCounter, PushbackIterator }
 import io.gatling.commons.util.Collections._
-import io.gatling.commons.util.Clock._
 import io.gatling.commons.util.ClockSingleton._
 import io.gatling.core.controller.ControllerCommand
 import io.gatling.core.scenario.Scenario
@@ -83,7 +83,9 @@ private[inject] case class Injection(count: Long, continue: Boolean) {
 
 object Injector {
 
-  val InjectorActorName = "gatling-injector"
+  private val InjectorActorName = "gatling-injector"
+  val TickPeriod: FiniteDuration = 1 second
+  val InitialBatchWindow: FiniteDuration = TickPeriod * 2
 
   def apply(system: ActorSystem, controller: ActorRef, statsEngine: StatsEngine, scenarios: List[Scenario]): ActorRef = {
     val userStreams: Map[String, UserStream] = scenarios.map(scenario => scenario.name -> UserStream(scenario, new PushbackIterator(scenario.injectionProfile.allUsers)))(breakOut)
@@ -93,12 +95,10 @@ object Injector {
 
 private[inject] class Injector(controller: ActorRef, statsEngine: StatsEngine, defaultStreams: Map[String, UserStream]) extends InjectorFSM {
 
+  import Injector._
   import InjectorState._
   import InjectorData._
   import InjectorCommand._
-
-  private val tickPeriod = 1 second
-  private val initialBatchWindow = tickPeriod * 2
 
   val userIdGen = new LongCounter
 
@@ -136,7 +136,7 @@ private[inject] class Injector(controller: ActorRef, statsEngine: StatsEngine, d
   private def injectUser(scenario: Scenario, delay: FiniteDuration): Unit = {
     val userId = userIdGen.incrementAndGet()
 
-    if (delay <= ZeroMs) {
+    if (delay <= Duration.Zero) {
       startUser(scenario, userId)
     } else {
       system.scheduler.scheduleOnce(delay)(startUser(scenario, userId))
@@ -147,12 +147,12 @@ private[inject] class Injector(controller: ActorRef, statsEngine: StatsEngine, d
 
   when(WaitingToStart) {
     case Event(Start, NoData) =>
-      val timer = system.scheduler.schedule(initialBatchWindow, tickPeriod, self, Tick)
-      inject(defaultStreams, initialBatchWindow, nowMillis, 0, timer)
+      val timer = system.scheduler.schedule(InitialBatchWindow, TickPeriod, self, Tick)
+      inject(defaultStreams, InitialBatchWindow, nowMillis, 0, timer)
   }
 
   when(Started) {
     case Event(Tick, StartedData(startMillis, count, timer)) =>
-      inject(defaultStreams, tickPeriod, startMillis, count, timer)
+      inject(defaultStreams, TickPeriod, startMillis, count, timer)
   }
 }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.session
 
 import scala.annotation.tailrec
@@ -40,11 +41,14 @@ object SessionPrivateAttributes {
 
 case class SessionAttribute(session: Session, key: String) {
 
-  def as[T: NotNothing]: T = session.attributes(key).asInstanceOf[T]
+  def as[T: TypeCaster: ClassTag: NotNothing]: T = session.attributes.get(key) match {
+    case Some(value) => value.as[T]
+    case _           => throw new NoSuchElementException(ElMessages.undefinedSessionAttribute(key).message)
+  }
   def asOption[T: TypeCaster: ClassTag: NotNothing]: Option[T] = session.attributes.get(key).flatMap(_.asOption[T])
   def validate[T: TypeCaster: ClassTag: NotNothing]: Validation[T] = session.attributes.get(key) match {
     case Some(value) => value.asValidation[T]
-    case None        => ElMessages.undefinedSessionAttribute(key)
+    case _           => ElMessages.undefinedSessionAttribute(key)
   }
 }
 

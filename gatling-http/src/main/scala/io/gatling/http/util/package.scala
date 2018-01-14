@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http
 
 import java.lang.{ StringBuilder => JStringBuilder }
@@ -157,7 +158,7 @@ package object util extends LazyLogging {
       buff
     }
 
-    def appendResponse(response: Response) = {
+    def appendResponse(response: Response): JStringBuilder = {
 
       response.status.foreach { status =>
         buff.append("status=").append(Eol).append(status.getStatusCode).append(" ").append(status.getStatusText).append(Eol)
@@ -181,7 +182,6 @@ package object util extends LazyLogging {
           } else {
             buff.append("<<<BINARY CONTENT>>>")
           }
-
         }
       }
 

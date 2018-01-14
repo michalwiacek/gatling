@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.session
 
 import io.gatling.BaseSpec
@@ -391,14 +392,25 @@ class SessionSpec extends BaseSpec {
     session("foo").as[String] shouldBe "bar"
   }
 
+  it should "support parsing a valid String into an Int" in {
+    val session = newSession.set("foo", "200")
+    session("foo").as[String] shouldBe "200"
+    session("foo").as[Int] shouldBe 200
+  }
+
   it should "throw an exception when key isn't defined" in {
     val session = newSession
     a[java.util.NoSuchElementException] shouldBe thrownBy(session("foo").as[String])
   }
 
-  it should "throw an exception when the value isn't of the expected type" in {
+  it should "throw a NumberFormatException when the String value can't be parsed" in {
     val session = newSession.set("foo", "bar")
-    a[java.lang.ClassCastException] shouldBe thrownBy(session("foo").as[Int])
+    a[NumberFormatException] shouldBe thrownBy(session("foo").as[Int])
+  }
+
+  it should "throw a ClassCastException when the value can't be turned into the expected type" in {
+    val session = newSession.set("foo", true)
+    a[ClassCastException] shouldBe thrownBy(session("foo").as[Int])
   }
 
   "asOption[T]" should "return a Some(value) when key is defined and value of the expected type" in {
@@ -406,19 +418,36 @@ class SessionSpec extends BaseSpec {
     session("foo").asOption[String] shouldBe Some("bar")
   }
 
+  it should "support parsing a valid String into an Int" in {
+    val session = newSession.set("foo", "200")
+    session("foo").asOption[String] shouldBe Some("200")
+    session("foo").asOption[Int] shouldBe Some(200)
+  }
+
   it should "return None when key isn't defined" in {
     val session = newSession
     session("foo").asOption[String] shouldBe None
   }
 
-  it should "throw an exception when the value isn't of the expected type" in {
+  it should "throw a NumberFormatException when the String value can't be parsed" in {
     val session = newSession.set("foo", "bar")
+    a[NumberFormatException] shouldBe thrownBy(session("foo").asOption[Int])
+  }
+
+  it should "throw a ClassCastException when the value isn't of the expected type" in {
+    val session = newSession.set("foo", true)
     a[ClassCastException] shouldBe thrownBy(session("foo").asOption[Int])
   }
 
   "validate[T]" should "return a Validation(value) when key is defined and value of the expected type" in {
     val session = newSession.set("foo", "bar")
     session("foo").validate[String] shouldBe Success("bar")
+  }
+
+  it should "support parsing a valid String into an Int" in {
+    val session = newSession.set("foo", "200")
+    session("foo").validate[String] shouldBe Success("200")
+    session("foo").validate[Int] shouldBe Success(200)
   }
 
   it should "return a Failure when key isn't defined" in {

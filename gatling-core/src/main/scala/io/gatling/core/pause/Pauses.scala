@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.pause
 
 import java.util.concurrent.ThreadLocalRandom
@@ -27,11 +28,11 @@ sealed abstract class PauseType {
 }
 
 object Disabled extends PauseType {
-  def generator(duration: Expression[Duration]) = throw new UnsupportedOperationException
+  override def generator(duration: Expression[Duration]): Expression[Long] = throw new UnsupportedOperationException
 }
 
 object Constant extends PauseType {
-  def generator(duration: Expression[Duration]) = duration.map(_.toMillis)
+  override def generator(duration: Expression[Duration]): Expression[Long] = duration.map(_.toMillis)
 }
 
 object Exponential extends PauseType {
@@ -45,51 +46,50 @@ object Exponential extends PauseType {
     -Math.log(u)
   }
 
-  def generator(duration: Expression[Duration]) = duration.map {
-    duration => (nextValue * duration.toMillis).round
-  }
+  override def generator(duration: Expression[Duration]): Expression[Long] =
+    duration.map(duration => (nextValue * duration.toMillis).round)
 }
 
 case class NormalWithPercentageDuration(stdDev: Double) extends PauseType {
 
   private val stdDevPercent = stdDev / 100.0
 
-  def generator(duration: Expression[Duration]) = duration.map { d =>
-    math.max(0L, ((1 + ThreadLocalRandom.current.nextGaussian * stdDevPercent) * d.toMillis).toLong)
-  }
+  override def generator(duration: Expression[Duration]): Expression[Long] =
+    duration.map(d => math.max(0L, ((1 + ThreadLocalRandom.current.nextGaussian * stdDevPercent) * d.toMillis).toLong))
 }
 
 case class NormalWithStdDevDuration(stdDev: Duration) extends PauseType {
-  def generator(duration: Expression[Duration]) = duration.map { d =>
-    math.max(0L, (ThreadLocalRandom.current.nextGaussian * stdDev.toMillis + d.toMillis).toLong)
-  }
+  override def generator(duration: Expression[Duration]): Expression[Long] =
+    duration.map(d => math.max(0L, (ThreadLocalRandom.current.nextGaussian * stdDev.toMillis + d.toMillis).toLong))
 }
 
 case class Custom(custom: Expression[Long]) extends PauseType {
-  def generator(duration: Expression[Duration]) = custom
+  override def generator(duration: Expression[Duration]): Expression[Long] = custom
 }
 
 case class UniformPercentage(plusOrMinus: Double) extends PauseType {
 
   private val plusOrMinusPercent = plusOrMinus / 100.0
 
-  def generator(duration: Expression[Duration]) = duration.map { d =>
-    val mean = d.toMillis
-    val halfWidth = (mean * plusOrMinusPercent).round
-    val least = math.max(0L, mean - halfWidth)
-    val bound = mean + halfWidth + 1
-    ThreadLocalRandom.current.nextLong(least, bound)
-  }
+  override def generator(duration: Expression[Duration]): Expression[Long] =
+    duration.map { d =>
+      val mean = d.toMillis
+      val halfWidth = (mean * plusOrMinusPercent).round
+      val least = math.max(0L, mean - halfWidth)
+      val bound = mean + halfWidth + 1
+      ThreadLocalRandom.current.nextLong(least, bound)
+    }
 }
 
 case class UniformDuration(plusOrMinus: Duration) extends PauseType {
 
   private val halfWidth = plusOrMinus.toMillis
 
-  def generator(duration: Expression[Duration]) = duration.map { duration =>
-    val mean = duration.toMillis
-    val least = math.max(0L, mean - halfWidth)
-    val bound = mean + halfWidth + 1
-    ThreadLocalRandom.current.nextLong(least, bound)
-  }
+  override def generator(duration: Expression[Duration]): Expression[Long] =
+    duration.map { duration =>
+      val mean = duration.toMillis
+      val least = math.max(0L, mean - halfWidth)
+      val bound = mean + halfWidth + 1
+      ThreadLocalRandom.current.nextLong(least, bound)
+    }
 }

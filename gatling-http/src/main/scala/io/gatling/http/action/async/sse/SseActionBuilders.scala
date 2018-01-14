@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.action.async.sse
 
 import io.gatling.core.action.Action
@@ -51,10 +52,10 @@ class SseCancelCheckBuilder(requestName: Expression[String], sseName: String) ex
     new SseCancelCheck(requestName, sseName, ctx.coreComponents.statsEngine, next)
 }
 
-class SseReconciliateBuilder(requestName: Expression[String], sseName: String) extends HttpActionBuilder {
+class SseReconcileBuilder(requestName: Expression[String], sseName: String) extends HttpActionBuilder {
 
   override def build(ctx: ScenarioContext, next: Action): Action =
-    new SseReconciliate(requestName, sseName, ctx.coreComponents.statsEngine, next)
+    new SseReconcile(requestName, sseName, ctx.coreComponents.statsEngine, next)
 }
 
 class SseCloseBuilder(requestName: Expression[String], sseName: String) extends HttpActionBuilder {

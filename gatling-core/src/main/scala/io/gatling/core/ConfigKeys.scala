@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core
 
 object ConfigKeys {
@@ -43,9 +44,8 @@ object ConfigKeys {
       }
     }
     object directory {
-      val Data = "gatling.core.directory.data"
-      val Bodies = "gatling.core.directory.bodies"
       val Simulations = "gatling.core.directory.simulations"
+      val Resources = "gatling.core.directory.resources"
       val Binaries = "gatling.core.directory.binaries"
       val ReportsOnly = "gatling.core.directory.reportsOnly"
       val Results = "gatling.core.directory.results"

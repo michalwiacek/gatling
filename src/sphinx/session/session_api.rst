@@ -88,43 +88,50 @@ Session has the following methods:
 
   A very common pitfall is to forget that ``set`` and ``setAll`` actually return new instances.
 
-.. includecode:: code/SessionSpec.scala#sessions-are-immutable
+.. includecode:: code/SessionSample.scala#sessions-are-immutable
 
 Getting Attributes
 ------------------
 
 Let's say a Session instance variable named session contains a String attribute named "foo".
 
-.. includecode:: code/SessionSpec.scala#session
+.. includecode:: code/SessionSample.scala#session
 
 Then:
 
-.. includecode:: code/SessionSpec.scala#session-attribute
+.. includecode:: code/SessionSample.scala#session-attribute
 
 .. warning::
   ``session("foo")`` doesn't return the value, but a wrapper.
 
 You can then access methods to retrieve the actual value in several ways:
 
-``session("foo").as[String]``:
+``session("foo").as[Int]``:
 
-* returns a ``String``,
-* throws a ``NoSuchElementException`` if the "foo" attribute is undefined,
-* throws a ``ClassCastException`` if the value is not a String
+* returns a ``Int``,
+* throws a ``NoSuchElementException`` if the *foo* attribute is undefined,
+* throws a ``NumberFormatException`` if the value is a String and can't be parsed into a String,
+* throws a ``ClassCastException`` if the value is not an Int
 
-``session("foo").asOption[String]``:
+``session("foo").asOption[Int]``:
 
-* returns an ``Option[String]``
-* which is ``None`` if the "foo" attribute is undefined,
-* which is ``Some(value)`` otherwise and *value* is indeed a String
+* returns an ``Option[Int]``
+* which is ``None`` if the *foo* attribute is undefined,
+* which is ``Some(value)`` otherwise and *value* is an Int, or is a String that can be parsed into a String,
+* throws a ``NumberFormatException`` if the value is a String and can't be parsed into a String,
 * throws a ``ClassCastException`` otherwise
 
-``session("foo").validate[String]``:
+``session("foo").validate[Int]``:
 
-* returns an ``Validation[String]``
-* which is ``Failure(errorMessage)`` if the *"foo"* attribute is undefined
-* which is ``Failure(errorMessage)`` if the value is not a String
-* which is ``Success(value)`` otherwise
+* returns an ``Validation[Int]``
+* which is ``Success(value)`` if the *foo* attribute is defined and *value* is an Int or is a String that can be parsed into a String,
+* which is ``Failure(errorMessage)`` otherwise
+
+.. note::
+  Trying to get a ``[String]`` actually performs a ``toString`` conversion and thus, always works as long as the entry is defined.
+
+.. note::
+if the value a ``[String]``, Gatling will try to parse it into a value of the expected type.
 
 .. note::
 

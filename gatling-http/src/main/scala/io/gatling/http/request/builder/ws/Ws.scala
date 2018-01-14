@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.request.builder.ws
 
 import io.gatling.core.session.{ Expression, SessionPrivateAttributes }
@@ -21,8 +22,7 @@ import io.gatling.http.check.async.AsyncCheckBuilder
 import io.gatling.http.request.builder.CommonAttributes
 
 object Ws {
-
-  val DefaultWebSocketName = SessionPrivateAttributes.PrivateAttributePrefix + "http.webSocket"
+  private val DefaultWebSocketName = SessionPrivateAttributes.PrivateAttributePrefix + "http.webSocket"
 }
 
 /**
@@ -69,9 +69,9 @@ class Ws(requestName: Expression[String], wsName: String = Ws.DefaultWebSocketNa
   def cancelCheck = new WsCancelCheckBuilder(requestName, wsName)
 
   /**
-   * Reconciliate the main state with the one of the websocket flow.
+   * Reconcile the main state with the one of the websocket flow.
    */
-  def reconciliate = new WsReconciliateBuilder(requestName, wsName)
+  def reconcile = new WsReconcileBuilder(requestName, wsName)
 
   /**
    * Closes a websocket.

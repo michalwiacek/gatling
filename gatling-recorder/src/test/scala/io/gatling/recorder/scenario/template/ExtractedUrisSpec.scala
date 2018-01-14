@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.scenario.template
 
 import io.gatling.BaseSpec
 import io.gatling.recorder.scenario.RequestElement
 
+import io.netty.handler.codec.http.EmptyHttpHeaders
+
 class ExtractedUrisSpec extends BaseSpec {
 
-  def mockRequestElement(uri: String) = RequestElement(uri, "get", Map(), None, None, 200, Nil)
+  def mockRequestElement(uri: String) = new RequestElement(uri, "get", EmptyHttpHeaders.INSTANCE, None, None, 200, Nil)
 
   def extractUris(uris: Seq[String]): ExtractedUris = {
     val requestElements = uris.map(mockRequestElement)

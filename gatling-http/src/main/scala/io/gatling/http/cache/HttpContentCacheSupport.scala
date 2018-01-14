@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.cache
 
 import io.gatling.core.config.GatlingConfiguration
@@ -27,15 +28,15 @@ import org.asynchttpclient.uri.Uri
 
 object ContentCacheKey {
   def apply(request: Request): ContentCacheKey =
-    new ContentCacheKey(request.getUri, request.getMethod, new Cookies(request.getCookies))
+    new ContentCacheKey(request.getUri, request.getMethod, Cookies(request.getCookies))
 }
 
-case class ContentCacheKey(uri: Uri, method: String, cookies: Cookies)
+case class ContentCacheKey(uri: Uri, method: String, cookies: Map[String, String])
 
 case class ContentCacheEntry(expires: Option[Long], etag: Option[String], lastModified: Option[String])
 
 object HttpContentCacheSupport {
-  val HttpContentCacheAttributeName = SessionPrivateAttributes.PrivateAttributePrefix + "http.cache.contentCache"
+  val HttpContentCacheAttributeName: String = SessionPrivateAttributes.PrivateAttributePrefix + "http.cache.contentCache"
 }
 
 trait HttpContentCacheSupport extends ExpiresSupport {
@@ -54,7 +55,7 @@ trait HttpContentCacheSupport extends ExpiresSupport {
       val lastModified = response.header(HeaderNames.LastModified)
 
       if (expires.isDefined || etag.isDefined || lastModified.isDefined) {
-        val key = ContentCacheKey(request.getUri, request.getMethod, new Cookies(request.getCookies))
+        val key = ContentCacheKey(request.getUri, request.getMethod, Cookies(request.getCookies))
         val value = ContentCacheEntry(expires, etag, lastModified)
         httpContentCacheHandler.addEntry(_, key, value)
       } else

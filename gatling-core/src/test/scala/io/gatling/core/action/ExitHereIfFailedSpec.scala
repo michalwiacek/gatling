@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.action
 
 import io.gatling.AkkaSpec
@@ -43,7 +44,7 @@ class ExitHereIfFailedSpec extends AkkaSpec {
     exitHereIfFailed ! session
 
     expectMsg(session)
-    exitProbe.expectNoMsg()
+    exitProbe.expectNoMessage(remainingOrDefault)
   }
 
   it should "end the scenario by sending the session to the user end if the session failed" in {
@@ -55,7 +56,7 @@ class ExitHereIfFailedSpec extends AkkaSpec {
 
     exitHereIfFailed ! session
 
-    expectNoMsg()
+    expectNoMessage(remainingOrDefault)
     exitProbe.expectMsg(session)
   }
 
@@ -68,7 +69,7 @@ class ExitHereIfFailedSpec extends AkkaSpec {
 
     exitHereIfFailed ! session
 
-    expectNoMsg()
+    expectNoMessage(remainingOrDefault)
     exitProbe.expectMsg(session)
     dataWriterProbe.expectMsgType[GroupMessage]
   }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.util.cache
 
 import java.util.concurrent.ConcurrentMap
@@ -45,12 +46,8 @@ object Cache {
 
 class Cache[K, V](queue: Queue[K], map: Map[K, V], maxCapacity: Int) {
 
-  def +(kv: (K, V)): Cache[K, V] = {
-    val (key, value) = kv
-    add(key, value)
-  }
-  def add(key: K, value: V): Cache[K, V] = {
-    if (map.contains(key))
+  def put(key: K, value: V): Cache[K, V] = {
+    if (map.get(key).contains(value))
       this
 
     else if (map.size == maxCapacity) {
@@ -65,16 +62,15 @@ class Cache[K, V](queue: Queue[K], map: Map[K, V], maxCapacity: Int) {
     }
   }
 
-  def -(key: K): Cache[K, V] = remove(key)
-  def remove(key: K): Cache[K, V] = {
+  def remove(key: K): Cache[K, V] =
     if (map.contains(key)) {
       val newQueue = queue.filter(_ != key)
       val newMap = map - key
       new Cache(newQueue, newMap, maxCapacity)
 
-    } else
+    } else {
       this
-  }
+    }
 
   def get(key: K): Option[V] = map.get(key)
 }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http
 
 object HeaderNames {
@@ -101,6 +102,7 @@ object HeaderValues {
   val AudioOgg = "audio/ogg"
   val AudioVorbis = "audio/vorbis"
   val AudioWebm = "audio/webm"
+  val Close = "close"
   val ImagePng = "image/png"
   val ImageJpeg = "image/jpeg"
   val ImageGif = "image/gif"

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.request.builder
 
 import scala.collection.JavaConverters._
@@ -68,15 +69,15 @@ class HttpRequestExpressionBuilder(commonAttributes: CommonAttributes, httpAttri
                 case Some(bytes) => requestBuilder.setBody(bytes)
                 case None =>
                   resource match {
-                    case FileResource(_, file) => requestBuilder.setBody(file)
-                    case _                     => requestBuilder.setBody(resource.bytes)
+                    case FileResource(file) => requestBuilder.setBody(file)
+                    case _                  => requestBuilder.setBody(resource.bytes)
                   }
               }
           }
-          case ByteArrayBody(bytes)             => bytes(session).map(requestBuilder.setBody)
-          case CompositeByteArrayBody(bytes, _) => bytes(session).map(bs => requestBuilder.setBody(bs.asJava))
-          case InputStreamBody(is)              => is(session).map(is => requestBuilder.setBody(new InputStreamBodyGenerator(is)))
-          case body: PebbleBody                 => body.apply(session).map(requestBuilder.setBody)
+          case ByteArrayBody(bytes)                  => bytes(session).map(requestBuilder.setBody)
+          case CompositeByteArrayBody(byteArrays, _) => byteArrays(session).map(bs => requestBuilder.setBody(bs.asJava))
+          case InputStreamBody(is)                   => is(session).map(is => requestBuilder.setBody(new InputStreamBodyGenerator(is)))
+          case body: PebbleBody                      => body.apply(session).map(requestBuilder.setBody)
         }
 
       def setBodyParts(bodyParts: List[BodyPart]): Validation[AhcRequestBuilder] =

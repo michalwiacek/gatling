@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.action.sync
 
 import io.gatling.commons.validation._
@@ -44,20 +45,22 @@ case class AddCookieDsl(
     value:  Expression[String],
     domain: Option[String]     = None,
     path:   Option[String]     = None,
-    maxAge: Option[Long]       = None
+    maxAge: Option[Long]       = None,
+    secure: Boolean            = false
 ) {
   def withDomain(domain: String) = copy(domain = Some(domain))
   def withPath(path: String) = copy(path = Some(path))
   def withMaxAge(maxAge: Int) = copy(maxAge = Some(maxAge))
+  def withSecure(secure: Boolean) = copy(secure = secure)
 }
 
 object AddCookieBuilder {
 
   def apply(cookie: AddCookieDsl) =
-    new AddCookieBuilder(cookie.name, cookie.value, cookie.domain, cookie.path, cookie.maxAge.getOrElse(Cookie.UNDEFINED_MAX_AGE))
+    new AddCookieBuilder(cookie.name, cookie.value, cookie.domain, cookie.path, cookie.maxAge.getOrElse(Cookie.UNDEFINED_MAX_AGE), cookie.secure)
 }
 
-class AddCookieBuilder(name: String, value: Expression[String], domain: Option[String], path: Option[String], maxAge: Long) extends HttpActionBuilder with NameGen {
+class AddCookieBuilder(name: String, value: Expression[String], domain: Option[String], path: Option[String], maxAge: Long, secure: Boolean) extends HttpActionBuilder with NameGen {
 
   import CookieActionBuilder._
 
@@ -83,6 +86,7 @@ class AddCookieBuilder(name: String, value: Expression[String], domain: Option[S
       val cookie = new DefaultCookie(name, value)
       domain.foreach(cookie.setDomain)
       path.foreach(cookie.setPath)
+      cookie.setSecure(secure)
       storeCookie(session, resolvedRequestDomain, DefaultPath, cookie)
     }
 
@@ -94,20 +98,22 @@ case class GetCookieDsl(
     name:   String,
     domain: Option[String] = None,
     path:   Option[String] = None,
+    secure: Boolean        = false,
     saveAs: Option[String] = None
 ) {
   def withDomain(domain: String) = copy(domain = Some(domain))
   def withPath(path: String) = copy(path = Some(path))
+  def withSecure(secure: Boolean) = copy(secure = secure)
   def saveAs(key: String) = copy(saveAs = Some(key))
 }
 
 object GetCookieValueBuilder {
 
   def apply(cookie: GetCookieDsl) =
-    new GetCookieValueBuilder(cookie.name, cookie.domain, cookie.path, cookie.saveAs)
+    new GetCookieValueBuilder(cookie.name, cookie.domain, cookie.path, cookie.secure, cookie.saveAs)
 }
 
-class GetCookieValueBuilder(name: String, domain: Option[String], path: Option[String], saveAs: Option[String]) extends HttpActionBuilder with NameGen {
+class GetCookieValueBuilder(name: String, domain: Option[String], path: Option[String], secure: Boolean, saveAs: Option[String]) extends HttpActionBuilder with NameGen {
 
   import CookieActionBuilder._
 
@@ -123,7 +129,7 @@ class GetCookieValueBuilder(name: String, domain: Option[String], path: Option[S
 
     val expression: Expression[Session] = session => for {
       domain <- resolvedDomain(session)
-      cookieValue <- getCookieValue(session, domain, resolvedPath, name)
+      cookieValue <- getCookieValue(session, domain, resolvedPath, name, secure)
     } yield session.set(resolvedSaveAs, cookieValue)
 
     new SessionHook(expression, genName("getCookie"), coreComponents.statsEngine, next) with ExitableAction

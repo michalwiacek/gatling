@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.check.extractor.css
 
 import java.util.{ List => JList }
@@ -38,8 +39,6 @@ class CssSelectors(implicit configuration: GatlingConfiguration) {
     Cache.newConcurrentLoadingCache(configuration.core.extract.css.cacheMaxCapacity, CSSelly.parse)
 
   def parse(chars: Array[Char]) = new NodeSelector(domBuilder.parse(chars))
-
-  def parse(string: String) = new NodeSelector(domBuilder.parse(string))
 
   def extractAll[X: NodeConverter](selector: NodeSelector, criterion: (String, Option[String])): Vector[X] = {
 

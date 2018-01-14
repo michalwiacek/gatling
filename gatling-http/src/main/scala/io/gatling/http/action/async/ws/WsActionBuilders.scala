@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.action.async.ws
 
 import io.gatling.core.session.Expression
@@ -62,10 +63,10 @@ class WsCancelCheckBuilder(requestName: Expression[String], wsName: String) exte
     new WsCancelCheck(requestName, wsName, ctx.coreComponents.statsEngine, next)
 }
 
-class WsReconciliateBuilder(requestName: Expression[String], wsName: String) extends HttpActionBuilder {
+class WsReconcileBuilder(requestName: Expression[String], wsName: String) extends HttpActionBuilder {
 
   override def build(ctx: ScenarioContext, next: Action): Action =
-    new WsReconciliate(requestName, wsName, ctx.coreComponents.statsEngine, next)
+    new WsReconcile(requestName, wsName, ctx.coreComponents.statsEngine, next)
 }
 
 class WsCloseBuilder(requestName: Expression[String], wsName: String) extends HttpActionBuilder {

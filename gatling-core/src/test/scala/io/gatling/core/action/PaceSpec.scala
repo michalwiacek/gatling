@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.action
 
 import scala.concurrent.duration._
@@ -35,7 +36,7 @@ class PaceSpec extends AkkaSpec {
 
     // Send second session, expect nothing for 7 seconds, then a response
     instance ! session1
-    expectNoMsg(2.seconds)
+    expectNoMessage(2.seconds)
     val session2 = expectMsgClass(2.seconds, classOf[Session])
 
     // counter must have incremented by 3 seconds

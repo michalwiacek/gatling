@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.controller.throttle
 
 import io.gatling.core.scenario.SimulationParams
@@ -21,14 +22,14 @@ import akka.actor.{ Props, ActorSystem, ActorRef }
 
 case class Throttles(global: Option[Throttle], perScenario: Map[String, Throttle]) {
 
-  def limitReached(scenario: String) = {
+  def limitReached(scenario: String): Boolean = {
     global.map(_.limitReached) match {
       case Some(true) => true
       case _          => perScenario.collectFirst { case (`scenario`, throttle) => throttle.limitReached }.getOrElse(false)
     }
   }
 
-  def increment(scenario: String) = {
+  def increment(scenario: String): Unit = {
     global.foreach(_.increment())
     perScenario.get(scenario).foreach(_.increment())
   }
@@ -48,7 +49,7 @@ object Throttler {
   val ThrottlerActorName = "gatling-throttler"
   val ThrottlerControllerActorName = "gatling-throttler-controller"
 
-  def apply(system: ActorSystem, simulationParams: SimulationParams) = {
+  def apply(system: ActorSystem, simulationParams: SimulationParams): Throttler = {
 
     val throttler = system.actorOf(Props(new ThrottlerActor), ThrottlerActorName)
     val throttlerController = system.actorOf(Props(new ThrottlerController(throttler, simulationParams.throttlings)), ThrottlerControllerActorName)

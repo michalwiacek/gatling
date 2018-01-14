@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.compile
 
 import scala.concurrent.duration._
@@ -43,6 +44,12 @@ class CoreCompileTest extends Simulation {
   val loginChain = exec(noop).pause(1)
 
   val testData = tsv("test-data.tsv")
+
+  feed(csv("foo.csv.zip").unzip)
+  feed(csv("foo.csv").batch)
+  feed(csv("foo.csv").batch.random)
+  feed(csv("foo.csv").batch(500))
+  feed(csv("foo.csv").batch(500).random)
 
   val richTestData = testData.convert { case ("keyOfAMultivaluedColumn", value) => value.split(",") }
 

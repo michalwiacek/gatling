@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.feeder
 
 import io.gatling.commons.validation._
-import io.gatling.core.feeder.RecordSeqFeederBuilder
+import io.gatling.core.feeder.{ InMemoryFeederSource, SourceFeederBuilder }
 import io.gatling.core.config.GatlingConfiguration
 import io.gatling.core.util.Resource
 
@@ -25,11 +26,12 @@ import io.gatling.core.util.Resource
  */
 trait SitemapFeederSupport {
 
-  def sitemap(fileName: String)(implicit configuration: GatlingConfiguration): RecordSeqFeederBuilder[String] = sitemap(Resource.feeder(fileName))
+  def sitemap(fileName: String)(implicit configuration: GatlingConfiguration): SourceFeederBuilder[String] =
+    sitemap(Resource.resource(fileName))
 
-  def sitemap(resource: Validation[Resource]): RecordSeqFeederBuilder[String] =
+  def sitemap(resource: Validation[Resource])(implicit configuration: GatlingConfiguration): SourceFeederBuilder[String] =
     resource match {
-      case Success(res)     => RecordSeqFeederBuilder(SitemapParser.parse(res))
+      case Success(res)     => SourceFeederBuilder(InMemoryFeederSource(SitemapParser.parse(res)), configuration)
       case Failure(message) => throw new IllegalArgumentException(s"Could not locate sitemap file: $message")
     }
 }

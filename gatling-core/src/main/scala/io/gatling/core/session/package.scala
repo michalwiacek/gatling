@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core
 
 import scala.annotation.tailrec
-import scala.annotation.unchecked.uncheckedVariance
 
 import io.gatling.commons.util.Maps._
 import io.gatling.commons.validation._
@@ -24,14 +24,14 @@ import io.gatling.core.session.el._
 
 package object session {
 
-  type Expression[T] = Session => Validation[T @uncheckedVariance]
+  type Expression[T] = Session => Validation[T]
 
-  val TrueExpressionSuccess = true.expressionSuccess
-  val EmptyStringExpressionSuccess = "".expressionSuccess
+  val TrueExpressionSuccess: Expression[Boolean] = true.expressionSuccess
+  val EmptyStringExpressionSuccess: Expression[String] = "".expressionSuccess
 
   case class StaticStringExpression(value: String) extends Expression[String] {
-    val valueV = value.success
-    def apply(session: Session) = valueV
+    private val valueV = value.success
+    override def apply(session: Session): Validation[String] = valueV
   }
 
   implicit class ExpressionSuccessWrapper[T](val value: T) extends AnyVal {

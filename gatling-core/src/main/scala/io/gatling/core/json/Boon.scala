@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.json
 
 import java.io.{ InputStream, InputStreamReader }
 import java.nio.charset.Charset
 
+import io.gatling.commons.util.JavaRuntime
+
 import io.advantageous.boon.json.implementation.{ JsonFastParser, JsonParserUsingCharacterSource }
 
 class Boon extends JsonParser {
 
+  if (!JavaRuntime.IsJava8) {
+    // disable io.advantageous.boon.core.reflection.FastStringUtils that doesn't work with Java 9+
+    System.setProperty("io.advantageous.boon.faststringutils.disable", java.lang.Boolean.toString(true))
+  }
+
   private def newFastParser = new JsonFastParser(false, false, true, false)
 
-  def parse(bytes: Array[Byte], charset: Charset) = {
+  override def parse(bytes: Array[Byte], charset: Charset): AnyRef = {
     val parser = newFastParser
     parser.setCharset(charset)
     parser.parse(bytes)
   }
 
-  def parse(string: String) =
+  override def parse(string: String): AnyRef =
     newFastParser.parse(string)
 
-  def parse(stream: InputStream, charset: Charset) =
+  override def parse(stream: InputStream, charset: Charset): AnyRef =
     new JsonParserUsingCharacterSource().parse(new InputStreamReader(stream, charset))
 }

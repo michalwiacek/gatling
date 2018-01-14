@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.ahc
 
 import scala.util.control.NonFatal
@@ -239,43 +240,45 @@ class ResponseProcessor(statsEngine: StatsEngine, httpEngine: HttpEngine, config
         Option(originalRequest.getBodyGenerator).foreach(requestBuilder.setBody)
       }
 
-      for (cookie <- CookieSupport.getStoredCookies(sessionWithUpdatedCookies, redirectUri))
-        requestBuilder.addCookie(cookie)
+      CookieSupport.getStoredCookies(sessionWithUpdatedCookies, redirectUri).foreach(requestBuilder.addCookie)
 
       requestBuilder.build
     }
 
     def redirect(statusCode: Int, update: Session => Session): Unit =
-      tx.request.config.maxRedirects match {
-        case Some(maxRedirects) if maxRedirects == tx.redirectCount =>
-          ko(tx, update, response, s"Too many redirects, max is $maxRedirects")
+      if (tx.request.config.maxRedirects == tx.redirectCount) {
+        ko(tx, update, response, s"Too many redirects, max is ${tx.request.config.maxRedirects}")
 
-        case _ =>
-          response.header(HeaderNames.Location) match {
-            case Some(location) =>
-              val redirectURI = resolveFromUri(tx.request.ahcRequest.getUri, location)
+      } else {
+        response.header(HeaderNames.Location) match {
+          case Some(location) =>
+            val redirectURI = resolveFromUri(tx.request.ahcRequest.getUri, location)
 
-              val cacheRedirectUpdate =
-                if (httpProtocol.requestPart.cache)
-                  cacheRedirect(tx.request.ahcRequest, redirectURI)
-                else
-                  Session.Identity
+            val cacheRedirectUpdate =
+              if (httpProtocol.requestPart.cache)
+                cacheRedirect(tx.request.ahcRequest, redirectURI)
+              else
+                Session.Identity
 
-              val groupUpdate = logGroupRequestUpdate(tx, OK, response.startTimestamp, response.endTimestamp)
+            val groupUpdate = logGroupRequestUpdate(tx, OK, response.startTimestamp, response.endTimestamp)
 
-              val totalUpdate = update andThen cacheRedirectUpdate andThen groupUpdate
-              val newSession = totalUpdate(tx.session)
+            val totalUpdate = update andThen cacheRedirectUpdate andThen groupUpdate
+            val newSession = totalUpdate(tx.session)
 
-              val loggedTx = tx.copy(session = newSession, update = totalUpdate)
-              logRequest(loggedTx, OK, response)
+            val loggedTx = tx.copy(session = newSession)
+            logRequest(loggedTx, OK, response)
 
-              val newAhcRequest = redirectRequest(statusCode, redirectURI, newSession)
-              val redirectTx = loggedTx.copy(request = loggedTx.request.copy(ahcRequest = newAhcRequest), redirectCount = tx.redirectCount + 1)
-              HttpTx.start(redirectTx)
+            val newAhcRequest = redirectRequest(statusCode, redirectURI, newSession)
+            val redirectTx = loggedTx.copy(
+              request = loggedTx.request.copy(ahcRequest = newAhcRequest),
+              redirectCount = tx.redirectCount + 1,
+              update = if (tx.resourceFetcher.isEmpty) Session.Identity else totalUpdate
+            )
+            HttpTx.start(redirectTx)
 
-            case None =>
-              ko(tx, update, response, "Redirect status, yet no Location header")
-          }
+          case _ =>
+            ko(tx, update, response, "Redirect status, yet no Location header")
+        }
       }
 
     def cacheRedirect(originalRequest: Request, redirectUri: Uri): Session => Session =
@@ -313,10 +316,10 @@ class ResponseProcessor(statsEngine: StatsEngine, httpEngine: HttpEngine, config
         val newUpdate = tx.update andThen storeCookiesUpdate
         val statusCode = status.getStatusCode
 
-        if (HttpHelper.isRedirect(statusCode) && tx.request.config.followRedirect)
+        if (HttpHelper.isRedirect(statusCode) && tx.request.config.followRedirect) {
           redirect(statusCode, newUpdate)
 
-        else {
+        } else {
           val checks =
             if (HttpHelper.isNotModified(statusCode))
               tx.request.config.checks.filter(c => c.scope != HttpCheckScope.Body && c.scope != HttpCheckScope.Checksum)

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.scenario
 
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets.UTF_8
+import java.util.Locale
 
-import scala.collection.breakOut
-import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
-import scala.io.Codec.UTF8
+import scala.collection.JavaConverters._
 
 import io.gatling.http.HeaderNames._
 import io.gatling.http.HeaderValues._
 import io.gatling.http.fetch.{ EmbeddedResource, HtmlParser }
 import io.gatling.http.util.HttpHelper.parseFormBody
 import io.gatling.recorder.config.RecorderConfiguration
-import io.gatling.recorder.http.model.{ SafeHttpRequest, SafeHttpResponse }
+import io.gatling.recorder.model._
+import io.gatling.http.fetch.{ UserAgent => UserAgentHelper }
 
+import io.netty.handler.codec.http.{ DefaultHttpHeaders, HttpHeaders }
 import org.asynchttpclient.util.Base64
 import org.asynchttpclient.uri.Uri
 
@@ -48,24 +51,21 @@ private[recorder] case class TagElement(text: String) extends ScenarioElement
 
 private[recorder] object RequestElement {
 
-  val HtmlContentType = """(?i)text/html\s*(;\s+charset=(.+))?""".r
-
   val CacheHeaders = Set(CacheControl, IfMatch, IfModifiedSince, IfNoneMatch, IfRange, IfUnmodifiedSince)
 
-  def apply(request: SafeHttpRequest, response: SafeHttpResponse)(implicit configuration: RecorderConfiguration): RequestElement = {
-    val requestHeaders: Map[String, String] = request.headers.entries.asScala.map { entry => (entry.getKey, entry.getValue) }(breakOut)
-    val requestContentType = requestHeaders.get(ContentType)
-    val requestUserAgent = requestHeaders.get(UserAgent)
-    val responseContentType = Option(response.headers.get(ContentType))
+  // FIXME why 2 capture groups?
+  private val HtmlContentType = """(?i)text/html\s*(;\s+charset=(.+))?""".r
 
-    val containsFormParams = requestContentType.exists(_.contains(ApplicationFormUrlEncoded))
+  def apply(request: HttpRequest, response: HttpResponse)(implicit configuration: RecorderConfiguration): RequestElement = {
+    val requestHeaders = request.headers
 
     val requestBody =
       if (request.body.nonEmpty) {
-        if (containsFormParams)
+        val formUrlEncoded = Option(requestHeaders.get(ContentType)).exists(_.toLowerCase(Locale.ROOT).contains(ApplicationFormUrlEncoded))
+        if (formUrlEncoded)
           // The payload consists of a Unicode string using only characters in the range U+0000 to U+007F
           // cf: http://www.w3.org/TR/html5/forms.html#application/x-www-form-urlencoded-decoding-algorithm
-          Some(RequestBodyParams(parseFormBody(new String(request.body, UTF8.name))))
+          Some(RequestBodyParams(parseFormBody(new String(request.body, UTF_8.name))))
         else
           Some(RequestBodyBytes(request.body))
       } else {
@@ -79,33 +79,34 @@ private[recorder] object RequestElement {
         None
       }
 
-    val embeddedResources = responseContentType.collect {
-      case HtmlContentType(_, headerCharset) =>
-        val charsetName = Option(headerCharset).filter(Charset.isSupported).getOrElse(UTF8.name)
-        val charset = Charset.forName(charsetName)
-        if (response.body.nonEmpty) {
-          val htmlBuff = new String(response.body, charset)
-          val userAgent = requestUserAgent.flatMap(io.gatling.http.fetch.UserAgent.parseFromHeader)
-          Some(new HtmlParser().getEmbeddedResources(Uri.create(request.uri), htmlBuff, userAgent))
-        } else {
-          None
-        }
-    }.flatten.getOrElse(Nil)
+    val embeddedResources = Option(response.headers.get(ContentType)).collect {
+      case HtmlContentType(_, headerCharset) if response.body.nonEmpty =>
+        val charset = Option(headerCharset).collect { case charsetName if Charset.isSupported(charsetName) => Charset.forName(charsetName) }.getOrElse(UTF_8)
+        val htmlBuff = new String(response.body, charset)
+        val userAgent = Option(requestHeaders.get(UserAgent)).flatMap(UserAgentHelper.parseFromHeader)
+        new HtmlParser().getEmbeddedResources(Uri.create(request.uri), htmlBuff, userAgent)
+    }.getOrElse(Nil)
 
-    val filteredRequestHeaders =
-      if (configuration.http.removeCacheHeaders)
-        requestHeaders.filterKeys(name => !CacheHeaders.contains(name))
-      else
+    val filteredRequestHeaders: HttpHeaders =
+      if (configuration.http.removeCacheHeaders) {
+        val filtered = new DefaultHttpHeaders(false)
+        for {
+          entry <- requestHeaders.entries.asScala
+          if !CacheHeaders.contains(entry.getKey)
+        } filtered.add(entry.getKey, entry.getValue)
+        filtered
+      } else {
         requestHeaders
+      }
 
-    RequestElement(new String(request.uri), request.method.toString, filteredRequestHeaders, requestBody, responseBody, response.status.code, embeddedResources)
+    new RequestElement(new String(request.uri), request.method, filteredRequestHeaders, requestBody, responseBody, response.status, embeddedResources)
   }
 }
 
 private[recorder] case class RequestElement(
     uri:                  String,
     method:               String,
-    headers:              Map[String, String],
+    headers:              HttpHeaders,
     body:                 Option[RequestBody],
     responseBody:         Option[ResponseBody],
     statusCode:           Int,
@@ -126,14 +127,14 @@ private[recorder] case class RequestElement(
 
     (base.toString, uriComponents.toRelativeUrl)
   }
-  var printedUrl = uri
+  var printedUrl: String = uri
 
   // TODO NICO mutable external fields are a very bad idea
   var filteredHeadersId: Option[Int] = None
 
   var id: Int = 0
 
-  def setId(id: Int) = {
+  def setId(id: Int): RequestElement = {
     this.id = id
     this
   }
@@ -153,6 +154,6 @@ private[recorder] case class RequestElement(
         case _ => None
       }
 
-    headers.get(Authorization).filter(_.startsWith("Basic ")).flatMap(parseCredentials)
+    Option(headers.get(Authorization)).filter(_.startsWith("Basic ")).flatMap(parseCredentials)
   }
 }

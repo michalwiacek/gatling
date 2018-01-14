@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.body
 
 import io.gatling.commons.util.Io._
@@ -27,10 +28,10 @@ import com.github.benmanes.caffeine.cache.LoadingCache
 
 class ElFileBodies(implicit configuration: GatlingConfiguration) {
 
-  val charset = configuration.core.charset
+  private val charset = configuration.core.charset
 
   private def compileFile(path: String): Validation[Expression[String]] =
-    Resource.body(path).map { resource =>
+    Resource.resource(path).map { resource =>
       withCloseable(resource.inputStream) {
         _.toString(charset)
       }
@@ -40,7 +41,7 @@ class ElFileBodies(implicit configuration: GatlingConfiguration) {
     Cache.newConcurrentLoadingCache(configuration.core.elFileBodiesCacheMaxCapacity, compileFile)
 
   private def resource2BytesSeq(path: String): Validation[Expression[Seq[Array[Byte]]]] =
-    Resource.body(path).map { resource =>
+    Resource.resource(path).map { resource =>
       ElCompiler.compile2BytesSeq(resource.string(charset), charset)
     }
 

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.json
 
 import java.io.{ InputStream, InputStreamReader }
@@ -35,7 +36,7 @@ class Jackson(objectMapper: ObjectMapper, defaultCharset: Charset) extends JsonP
 
   val JsonSupportedEncodings = Vector(UTF_8, UTF_16, UTF_32)
 
-  def parse(bytes: Array[Byte], charset: Charset): Object =
+  override def parse(bytes: Array[Byte], charset: Charset): Object =
     parse(bytes, 0, bytes.length, charset)
 
   def parse(bytes: Array[Byte], offset: Int, length: Int, charset: Charset): Object =
@@ -46,9 +47,9 @@ class Jackson(objectMapper: ObjectMapper, defaultCharset: Charset) extends JsonP
       objectMapper.readValue(reader, classOf[Object])
     }
 
-  def parse(string: String): Object = objectMapper.readValue(string, classOf[Object])
+  override def parse(string: String): Object = objectMapper.readValue(string, classOf[Object])
 
-  def parse(stream: InputStream, charset: Charset = defaultCharset): Object =
+  override def parse(stream: InputStream, charset: Charset = defaultCharset): Object =
     if (JsonSupportedEncodings.contains(charset)) {
       objectMapper.readValue(stream, classOf[Object])
     } else {

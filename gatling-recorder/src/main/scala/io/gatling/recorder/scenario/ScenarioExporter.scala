@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.scenario
 
 import java.io.{ File, IOException }
+import java.nio.file.Path
+import java.util.Locale
 
 import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap
 
 import io.gatling.commons.util.Io._
@@ -25,7 +29,7 @@ import io.gatling.commons.util.PathHelper._
 import io.gatling.commons.validation._
 import io.gatling.http.{ HeaderNames, HeaderValues }
 import io.gatling.recorder.config.RecorderConfiguration
-import io.gatling.recorder.har.HarReader
+import io.gatling.recorder.har._
 import io.gatling.recorder.scenario.template.SimulationTemplate
 
 import com.dongxiguo.fastring.Fastring.Implicits._
@@ -35,7 +39,7 @@ private[recorder] object ScenarioExporter extends StrictLogging {
 
   private val EventsGrouping = 100
 
-  def simulationFilePath(implicit config: RecorderConfiguration) = {
+  def simulationFilePath(implicit config: RecorderConfiguration): Path = {
     def getSimulationFileName: String = s"${config.core.className}.scala"
     def getOutputFolder = {
       val path = config.core.outputFolder + File.separator + config.core.pkg.replace(".", File.separator)
@@ -53,11 +57,18 @@ private[recorder] object ScenarioExporter extends StrictLogging {
 
   def exportScenario(harFilePath: String)(implicit config: RecorderConfiguration): Validation[Unit] =
     safely(_ => "Error while processing HAR file") {
-      val har = HarReader(harFilePath)
-      if (har.elements.isEmpty) {
+      val transactions = HarReader.readFile(harFilePath, config.filters.filters)
+
+      if (transactions.isEmpty) {
         "the selected file doesn't contain any valid HTTP requests".failure
       } else {
-        ScenarioExporter.saveScenario(har).success
+        val scenarioElements = transactions.map {
+          case HttpTransaction(request, response) =>
+            val element = RequestElement(request, response)
+            TimedScenarioElement(request.timestamp, response.timestamp, element)
+        }
+
+        ScenarioExporter.saveScenario(ScenarioDefinition(scenarioElements, tags = Nil)).success
       }
     }
 
@@ -112,12 +123,12 @@ private[recorder] object ScenarioExporter extends StrictLogging {
       def generateHeaders(elements: Seq[RequestElement], headers: Map[Int, List[(String, String)]]): Map[Int, List[(String, String)]] = elements match {
         case Seq() => headers
         case element +: others =>
-          val acceptedHeaders = element.headers.toList
+          val acceptedHeaders = element.headers.entries.asScala.map(e => e.getKey -> e.getValue).toList
             .filterNot {
               case (headerName, headerValue) =>
                 val isFiltered = filteredHeaders contains headerName
                 val isAlreadyInBaseHeaders = baseHeaders.get(headerName).contains(headerValue)
-                val isPostWithFormParams = element.method == "POST" && headerValue == HeaderValues.ApplicationFormUrlEncoded
+                val isPostWithFormParams = element.method == "POST" && headerValue.toLowerCase(Locale.ROOT).contains(HeaderValues.ApplicationFormUrlEncoded)
                 val isEmptyContentLength = headerName.equalsIgnoreCase(HeaderNames.ContentLength) && headerValue == "0"
                 isFiltered || isAlreadyInBaseHeaders || isPostWithFormParams || isEmptyContentLength
             }
@@ -130,7 +141,7 @@ private[recorder] object ScenarioExporter extends StrictLogging {
           } else {
             val headersSeq = headers.toSeq
             headersSeq.indexWhere {
-              case (id, existingHeaders) => existingHeaders == acceptedHeaders
+              case (_, existingHeaders) => existingHeaders == acceptedHeaders
             } match {
               case -1 =>
                 element.filteredHeadersId = Some(element.id)
@@ -155,9 +166,7 @@ private[recorder] object ScenarioExporter extends StrictLogging {
   private def getBaseHeaders(requestElements: Seq[RequestElement]): Map[String, String] = {
 
     def getMostFrequentHeaderValue(headerName: String): Option[String] = {
-      val headers = requestElements.flatMap {
-        _.headers.collect { case (`headerName`, value) => value }
-      }
+      val headers = requestElements.flatMap(_.headers.getAll(headerName).asScala)
 
       if (headers.isEmpty || headers.length != requestElements.length)
         // a header has to be defined on all requestElements to be turned into a common one

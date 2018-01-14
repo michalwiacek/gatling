@@ -11,7 +11,7 @@ The Assertions API is used to verify that global statistics like response time o
 
 Assertions are registered for a simulation using the method ``assertions`` on the ``setUp``. For example:
 
-.. includecode:: code/Assertions.scala#setUp
+.. includecode:: code/AssertionSample.scala#setUp
 
 This method takes as many assertions as you like.
 
@@ -37,7 +37,7 @@ An assertion can test a statistic calculated from all requests or only a part.
 
 For example, to perform an assertion on the request ``Index`` in the group ``Search``, use:
 
-.. includecode:: code/Assertions.scala#details
+.. includecode:: code/AssertionSample.scala#details
 
 .. note::
 
@@ -71,13 +71,13 @@ Applicable to response time
 
 * ``stdDev``: perform the assertion on the standard deviation of the metric.
 
-* ``percentile1``: perform the assertion on the 1st percentile of the metric, as configured in ``gatling.conf``.
+* ``percentile1``: perform the assertion on the 1st percentile of the metric, as configured in ``gatling.conf`` (default is 50th).
 
-* ``percentile2``: perform the assertion on the 2nd percentile of the metric, as configured in ``gatling.conf``.
+* ``percentile2``: perform the assertion on the 2nd percentile of the metric, as configured in ``gatling.conf`` (default is 75th).
 
-* ``percentile3``: perform the assertion on the 3rd percentile of the metric, as configured in ``gatling.conf``.
+* ``percentile3``: perform the assertion on the 3rd percentile of the metric, as configured in ``gatling.conf`` (default is 95th).
 
-* ``percentile4``: perform the assertion on the 4th percentile of the metric, as configured in ``gatling.conf``.
+* ``percentile4``: perform the assertion on the 4th percentile of the metric, as configured in ``gatling.conf`` (default is 99th).
 
 * ``percentile(value: Double)``: perform the assertion on the given percentile of the metric. Parameter is a percentage, between 0 and 100.
 
@@ -114,7 +114,7 @@ Putting it all together
 
 To help you understand how to use assertions, here is a list of examples :
 
-.. includecode:: code/Assertions.scala#examples
+.. includecode:: code/AssertionSample.scala#examples
 
 Reports
 =======

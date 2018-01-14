@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.stats
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -143,18 +144,20 @@ class DataWritersStatsEngine(system: ActorSystem, dataWriters: Seq[ActorRef]) ex
     message:        Option[String],
     extraInfo:      List[Any]      = Nil
   ): Unit =
-    dispatch(ResponseMessage(
-      session.scenario,
-      session.userId,
-      session.groupHierarchy,
-      requestName,
-      startTimestamp,
-      endTimestamp,
-      status,
-      responseCode,
-      message,
-      extraInfo
-    ))
+    if (endTimestamp >= 0) {
+      dispatch(ResponseMessage(
+        session.scenario,
+        session.userId,
+        session.groupHierarchy,
+        requestName,
+        startTimestamp,
+        endTimestamp,
+        status,
+        responseCode,
+        message,
+        extraInfo
+      ))
+    }
 
   override def logGroupEnd(
     session:       Session,

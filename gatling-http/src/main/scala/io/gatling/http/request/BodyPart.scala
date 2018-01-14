@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.request
 
 import java.nio.charset.Charset
@@ -59,12 +60,11 @@ object BodyPart {
       case Some(bytes) => new ByteArrayPart(name, bytes, contentType.orNull, charset.orNull, fileName.getOrElse(resource.name), contentId.orNull, transferEncoding.orNull)
       case None =>
         resource match {
-          case FileResource(_, file) =>
+          case FileResource(file) =>
             new FilePart(name, file, contentType.orNull, charset.orNull, fileName.getOrElse(file.getName), contentId.orNull, transferEncoding.orNull)
           case _ =>
             new ByteArrayPart(name, resource.bytes, contentType.orNull, charset.orNull, fileName.getOrElse(resource.name), contentId.orNull, transferEncoding.orNull)
         }
-
     }
 }
 

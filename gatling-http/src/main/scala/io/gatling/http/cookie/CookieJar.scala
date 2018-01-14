@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.cookie
 
 import io.gatling.commons.util.ClockSingleton._
@@ -25,6 +26,8 @@ case class CookieKey(name: String, domain: String, path: String)
 case class StoredCookie(cookie: Cookie, hostOnly: Boolean, persistent: Boolean, creationTime: Long)
 
 object CookieJar {
+
+  val Empty = CookieJar(Map.empty)
 
   private def requestDomain(requestUri: Uri) = requestUri.getHost.toLowerCase
 
@@ -47,7 +50,13 @@ object CookieJar {
 
     // rfc6265#section-5.1.4
     def defaultCookiePath() = requestPath match {
-      case p if !p.isEmpty && p.charAt(0) == '/' && p.count(_ == '/') > 1 => p.substring(0, p.lastIndexOf('/'))
+      case p if p.length > 1 && p.charAt(0) == '/' =>
+        val lastSlash = p.lastIndexOf('/')
+        if (lastSlash > 0) { // more than one slash
+          p.substring(0, lastSlash)
+        } else {
+          "/"
+        }
       case _ => "/"
     }
 
@@ -113,14 +122,14 @@ case class CookieJar(store: Map[CookieKey, StoredCookie]) {
     CookieJar(newStore)
   }
 
-  def get(domain: String, path: String, isSecuredUri: Option[Boolean]): List[Cookie] =
+  def get(domain: String, path: String, secure: Boolean): List[Cookie] =
     if (store.isEmpty) {
       Nil
     } else {
       def isCookieMatching(key: CookieKey, storedCookie: StoredCookie) =
         domainsMatch(key.domain, domain, storedCookie.hostOnly) &&
           pathsMatch(key.path, path) &&
-          !isSecuredUri.exists(secured => !secured && storedCookie.cookie.isSecure)
+          (secure || !storedCookie.cookie.isSecure)
 
       val matchingCookies = store.filter {
         case (key, storedCookie) => isCookieMatching(key, storedCookie)
@@ -144,6 +153,6 @@ case class CookieJar(store: Map[CookieKey, StoredCookie]) {
     get(
       domain = requestDomain(requestUri),
       path = requestPath(requestUri),
-      isSecuredUri = Some(requestUri.isSecured)
+      secure = requestUri.isSecured
     )
 }

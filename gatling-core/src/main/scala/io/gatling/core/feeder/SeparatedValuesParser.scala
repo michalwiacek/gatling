@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,43 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.feeder
 
-import java.io.InputStream
-import java.util.{ Map => JMap }
+import java.io.{ InputStream, InputStreamReader }
+import java.nio.charset.Charset
 
 import scala.collection.JavaConverters._
 
 import io.gatling.commons.util.Io._
-import io.gatling.core.config.GatlingConfiguration
 import io.gatling.core.util.Resource
 
-import com.fasterxml.jackson.databind.{ MapperFeature, ObjectReader }
-import com.fasterxml.jackson.dataformat.csv.{ CsvSchema, CsvMapper }
+import org.simpleflatmapper.csv.CsvParser
 
 object SeparatedValuesParser {
+
+  val DefaultQuoteChar: Char = '"'
 
   val CommaSeparator = ','
   val SemicolonSeparator = ';'
   val TabulationSeparator = '\t'
 
-  def parse(resource: Resource, columnSeparator: Char, quoteChar: Char, escapeChar: Char)(implicit configuration: GatlingConfiguration): IndexedSeq[Record[String]] =
-    withCloseable(resource.inputStream) { source =>
-      stream(source, columnSeparator, quoteChar, escapeChar).toVector
+  def parse(resource: Resource, columnSeparator: Char, quoteChar: Char, charset: Charset): IndexedSeq[Record[String]] =
+    withCloseable(resource.inputStream) { is =>
+      stream(columnSeparator, quoteChar, charset)(is).toVector
     }
 
-  def stream(is: InputStream, columnSeparator: Char, quoteChar: Char, escapeChar: Char): Iterator[Record[String]] = {
+  def stream(columnSeparator: Char, quoteChar: Char, charset: Charset): InputStream => Feeder[String] = {
+    val parser = CsvParser
+      .separator(columnSeparator)
+      .quote(quoteChar)
 
-    val mapper = new CsvMapper().disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-    val schema = CsvSchema.emptySchema.withHeader.withColumnSeparator(columnSeparator).withQuoteChar(quoteChar).withEscapeChar(escapeChar)
+    is => {
+      val reader = new InputStreamReader(is, charset)
+      val it: Iterator[Array[String]] = parser.iterator(reader).asScala
+      if (it.hasNext) {
+        val headers = it.next.map(_.trim)
+        require(headers.nonEmpty, "CSV sources must have a non empty first line containing the headers")
+        headers.foreach { header =>
+          require(header.nonEmpty, "CSV headers can't be empty")
+        }
 
-    val reader: ObjectReader = mapper.readerFor(classOf[JMap[_, _]])
-
-    val it: Iterator[JMap[String, String]] = reader
-      .`with`(schema)
-      .readValues(is)
-      .asScala
-
-    it.map(_.asScala.toMap)
+        it.map { values =>
+          ArrayBasedMap(headers, values)
+        }
+      } else {
+        throw new ArrayIndexOutOfBoundsException("Feeder source is empty")
+      }
+    }
   }
 }

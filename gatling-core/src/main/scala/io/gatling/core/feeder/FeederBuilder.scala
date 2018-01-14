@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,53 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.feeder
 
-import io.gatling.core.structure.ScenarioContext
+import io.gatling.core.config.GatlingConfiguration
 
-trait FeederBuilder[T] {
-  def build(ctx: ScenarioContext): Feeder[T]
-}
+import com.softwaremill.quicklens._
 
-case class FeederWrapper[T](feeder: Feeder[T]) extends FeederBuilder[T] {
-  def build(ctx: ScenarioContext) = feeder
-}
-
-case class RecordSeqFeederBuilder[T](
-    records: IndexedSeq[Record[T]],
-    // [fl]
-    //
-    // [fl]
-    strategy: FeederStrategy = Queue
-) extends FeederBuilder[T] {
-
-  def convert(conversion: PartialFunction[(String, T), Any]): RecordSeqFeederBuilder[Any] = {
-    val useValueAsIs: PartialFunction[(String, T), Any] = { case (_, value) => value }
-    val fullConversion = conversion orElse useValueAsIs
-
-    copy[Any](records = records.map(_.map { case (key, value) => key -> fullConversion(key -> value) }))
-  }
-
-  def build(ctx: ScenarioContext): Feeder[T] =
-    ctx.coreComponents.configuration.resolve(
-      // [fl]
-      //
-      //
-      //
-      //
-      //
-      //
-      //
-      // [fl]
-      strategy.feeder(records, ctx)
-    )
-
-  def queue = copy(strategy = Queue)
-  def random = copy(strategy = Random)
-  def shuffle = copy(strategy = Shuffle)
-  def circular = copy(strategy = Circular)
-
+case class SourceFeederBuilder[T](
+    source:        FeederSource[T],
+    configuration: GatlingConfiguration,
+    options:       FeederOptions[T]     = FeederOptions[T]()
+) extends FeederBuilder {
   // [fl]
   //
   // [fl]
+
+  def unzip: SourceFeederBuilder[T] = this.modify(_.options.unzip).setTo(true)
+
+  def convert(f: PartialFunction[(String, T), Any]): SourceFeederBuilder[T] = {
+    val conversion: Record[T] => Record[Any] =
+      _.map {
+        case pair if f.isDefinedAt(pair) => pair._1 -> f(pair)
+        case pair                        => pair
+      }
+
+    this.modify(_.options.conversion).setTo(Some(conversion))
+  }
+
+  def queue: SourceFeederBuilder[T] = this.modify(_.options.strategy).setTo(Queue)
+  def random: SourceFeederBuilder[T] = this.modify(_.options.strategy).setTo(Random)
+  def shuffle: SourceFeederBuilder[T] = this.modify(_.options.strategy).setTo(Shuffle)
+  def circular: SourceFeederBuilder[T] = this.modify(_.options.strategy).setTo(Circular)
+
+  override def apply(): Feeder[Any] = source.feeder(options, configuration)
+
+  def readRecords: Seq[Record[Any]] = apply().toVector
+}
+
+case class FeederOptions[T](
+    // [fl]
+    shard:           Boolean = false,
+    // [fl]
+    unzip:           Boolean                          = false,
+    conversion:      Option[Record[T] => Record[Any]] = None,
+    strategy:        FeederStrategy                   = Queue,
+    batch:           Option[Int]                      = None,
+)
+
+trait BatchableFeederBuilder[T] extends SourceFeederBuilder[T] {
+  def batch: SourceFeederBuilder[T] = batch(2000)
+  def batch(bufferSize: Int): SourceFeederBuilder[T] = copy(options = options.copy(batch = Some(bufferSize)))
 }

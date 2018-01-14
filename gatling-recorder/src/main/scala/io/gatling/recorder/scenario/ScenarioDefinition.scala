@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.scenario
 
 import scala.concurrent.duration.{ Duration, DurationLong }
@@ -25,7 +26,7 @@ import com.softwaremill.quicklens._
 import com.typesafe.scalalogging.StrictLogging
 
 private[recorder] case class ScenarioDefinition(elements: Seq[ScenarioElement]) {
-  def isEmpty = elements.isEmpty
+  def isEmpty: Boolean = elements.isEmpty
 }
 
 private[recorder] object ScenarioDefinition extends StrictLogging {

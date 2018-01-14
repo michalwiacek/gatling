@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.config
 
 import java.util.{ List => JList }
@@ -115,5 +116,5 @@ class RecorderPropertiesBuilder {
   def privateKeyPath(path: String): Unit =
     props += proxy.https.certificateAuthority.PrivateKeyPath -> path
 
-  def build = props
+  def build: mutable.Map[String, Any] = props
 }

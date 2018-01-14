@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.action.ws2.fsm
 
 import io.gatling.commons.stats.{ KO, OK }
@@ -35,11 +36,10 @@ trait WhenPerformingCheck { this: WsActor =>
         val newSession = logResponse(session, currentCheck.name, checkSequenceStart, nowMillis, KO, None, Some(errorMessage))
         val nextAction = next match {
           case Left(n) =>
-            // failed to connect
             logger.debug("Check timeout, failing it and performing next action")
             n
           case Right(sendTextMessage) =>
-            // failed to reconnect, logging crash
+            // logging crash
             logger.debug("Check timeout while trying to reconnect, failing pending send message and performing next action")
             statsEngine.logCrash(newSession, sendTextMessage.actionName, s"Couldn't reconnect: $errorMessage")
             sendTextMessage.next

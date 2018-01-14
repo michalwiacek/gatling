@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ case class ConditionalCheck[R, C <: Check[R]](condition: (R, Session) => Validat
     nestedCheck.check(response, session)
   }
 
-  def check(response: R, session: Session)(implicit cache: scala.collection.mutable.Map[Any, Any]): Validation[CheckResult] = {
+  def check(response: R, session: Session)(implicit cache: scala.collection.mutable.Map[Any, Any]): Validation[CheckResult] =
     condition(response, session).flatMap { c =>
       if (c) {
         performNestedCheck(thenCheck, response, session)
@@ -41,5 +41,4 @@ case class ConditionalCheck[R, C <: Check[R]](condition: (R, Session) => Validat
         CheckResult.NoopCheckResultSuccess
       }
     }
-  }
 }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.jms.request
 
 import java.io.{ Serializable => JSerializable }
@@ -40,7 +41,7 @@ case class SendDslBuilderQueue(
     configuration: GatlingConfiguration
 ) {
 
-  def queue(name: String) = destination(JmsQueue(name))
+  def queue(name: Expression[String]) = destination(JmsQueue(name))
 
   def destination(destination: JmsDestination) = SendDslDslBuilderMessage(requestName, destination, configuration)
 }
@@ -50,7 +51,7 @@ case class RequestReplyDslBuilderQueue(
     configuration: GatlingConfiguration
 ) {
 
-  def queue(name: String) = destination(JmsQueue(name))
+  def queue(name: Expression[String]) = destination(JmsQueue(name))
 
   def destination(destination: JmsDestination) = RequestReplyDslBuilderMessage(requestName, destination, JmsTemporaryQueue, None, configuration)
 }
@@ -79,7 +80,7 @@ case class RequestReplyDslBuilderMessage(
   /**
    * Add a reply queue, if not specified dynamic queue is used
    */
-  def replyQueue(name: String) = replyDestination(JmsQueue(name))
+  def replyQueue(name: Expression[String]) = replyDestination(JmsQueue(name))
   def replyDestination(destination: JmsDestination) = this.copy(replyDest = destination)
 
   /**

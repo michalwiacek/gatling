@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.ui.swing.frame
 
 import java.awt.Font
@@ -33,7 +34,7 @@ import io.gatling.recorder.config.RecorderMode.{ Har, Proxy }
 import io.gatling.recorder.http.ssl.{ HttpsMode, KeyStoreType, SslCertUtil }
 import io.gatling.recorder.http.ssl.HttpsMode._
 import io.gatling.recorder.http.ssl.SslServerContext.OnTheFly
-import io.gatling.recorder.ui.RecorderFrontend
+import io.gatling.recorder.ui.RecorderFrontEnd
 import io.gatling.recorder.ui.swing.keyReleased
 import io.gatling.recorder.ui.swing.Commons._
 import io.gatling.recorder.ui.swing.component._
@@ -41,7 +42,7 @@ import io.gatling.recorder.ui.swing.frame.ValidationHelper._
 import io.gatling.recorder.ui.swing.util._
 import io.gatling.recorder.ui.swing.util.UIHelper._
 
-private[swing] class ConfigurationFrame(frontend: RecorderFrontend)(implicit configuration: RecorderConfiguration) extends MainFrame {
+private[swing] class ConfigurationFrame(frontend: RecorderFrontEnd)(implicit configuration: RecorderConfiguration) extends MainFrame {
 
 /************************************/
   /**           COMPONENTS           **/

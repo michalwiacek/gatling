@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.check
 
 import scala.annotation.tailrec
@@ -24,7 +25,7 @@ import io.gatling.core.session.{ Expression, Session }
 
 object Check {
 
-  def check[R](response: R, session: Session, checks: List[Check[R]])(implicit preparedCache: mutable.Map[Any, Any] = mutable.Map.empty[Any, Any]): (Session => Session, Option[Failure]) = {
+  def check[R](response: R, session: Session, checks: List[Check[R]])(implicit preparedCache: mutable.Map[Any, Any] = mutable.Map.empty): (Session => Session, Option[Failure]) = {
 
     @tailrec
     def checkRec(session: Session, checks: List[Check[R]], update: Session => Session, failure: Option[Failure]): (Session => Session, Option[Failure]) =
@@ -89,12 +90,12 @@ case class CheckBase[R, P, X](
 
 object CheckResult {
 
-  val NoopCheckResultSuccess = CheckResult(None, None).success
+  val NoopCheckResultSuccess: Validation[CheckResult] = CheckResult(None, None).success
 }
 
 case class CheckResult(extractedValue: Option[Any], saveAs: Option[String]) {
 
-  def hasUpdate = saveAs.isDefined && extractedValue.isDefined
+  def hasUpdate: Boolean = saveAs.isDefined && extractedValue.isDefined
 
   def update: Option[(Session => Session)] =
     for {

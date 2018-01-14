@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.structure
 
 import scala.concurrent.duration.Duration
@@ -56,15 +57,15 @@ case class PopulationBuilder(
 )
   extends LazyLogging {
 
-  def protocols(protocols: Protocol*) = copy(scenarioProtocols = this.scenarioProtocols ++ protocols)
+  def protocols(protocols: Protocol*): PopulationBuilder = copy(scenarioProtocols = this.scenarioProtocols ++ protocols)
 
-  def disablePauses = pauses(Disabled)
-  def constantPauses = pauses(Constant)
-  def exponentialPauses = pauses(Exponential)
-  def customPauses(custom: Expression[Long]) = pauses(Custom(custom))
-  def uniformPauses(plusOrMinus: Double) = pauses(UniformPercentage(plusOrMinus))
-  def uniformPauses(plusOrMinus: Duration) = pauses(UniformDuration(plusOrMinus))
-  def pauses(pauseType: PauseType) = copy(pauseType = Some(pauseType))
+  def disablePauses: PopulationBuilder = pauses(Disabled)
+  def constantPauses: PopulationBuilder = pauses(Constant)
+  def exponentialPauses: PopulationBuilder = pauses(Exponential)
+  def customPauses(custom: Expression[Long]): PopulationBuilder = pauses(Custom(custom))
+  def uniformPauses(plusOrMinus: Double): PopulationBuilder = pauses(UniformPercentage(plusOrMinus))
+  def uniformPauses(plusOrMinus: Duration): PopulationBuilder = pauses(UniformDuration(plusOrMinus))
+  def pauses(pauseType: PauseType): PopulationBuilder = copy(pauseType = Some(pauseType))
 
   def throttle(throttleSteps: ThrottleStep*): PopulationBuilder = throttle(throttleSteps.toIterable)
 

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.filter
 
+import scala.util.matching.Regex
 import scala.util.{ Failure, Success, Try }
 
 import com.typesafe.scalalogging.StrictLogging
 
 case class Filters(first: Filter, second: Filter) {
-  def accept(url: String) = first.accept(url) && second.accept(url)
+  def accept(url: String): Boolean = first.accept(url) && second.accept(url)
 }
 
 sealed abstract class Filter(patterns: Seq[String]) extends StrictLogging {
-  val regexes = patterns.flatMap { p =>
+  val regexes: Vector[Regex] = patterns.flatMap { p =>
     Try(p.r) match {
       case Success(regex) => Some(regex)
       case Failure(t) =>

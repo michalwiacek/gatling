@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.config
 
 import java.nio.charset.Charset
@@ -22,7 +23,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.io.Codec
 
-import io.gatling.commons.util.{StringHelper, ConfigHelper}
+import io.gatling.commons.util.{ StringHelper, ConfigHelper }
 import io.gatling.core.ConfigKeys._
 import io.gatling.core.stats.writer._
 import ConfigHelper.configChain
@@ -126,9 +127,8 @@ object GatlingConfiguration extends StrictLogging {
           )
         ),
         directory = DirectoryConfiguration(
-          data = config.getString(core.directory.Data),
-          bodies = config.getString(core.directory.Bodies),
-          sources = config.getString(core.directory.Simulations),
+          simulations = config.getString(core.directory.Simulations),
+          resources = config.getString(core.directory.Resources),
           binaries = config.getString(core.directory.Binaries).trimToOption,
           reportsOnly = config.getString(core.directory.ReportsOnly).trimToOption,
           results = config.getString(core.directory.Results)
@@ -154,19 +154,9 @@ object GatlingConfiguration extends StrictLogging {
         warmUpUrl = config.getString(http.WarmUpUrl).trimToOption,
         enableGA = config.getBoolean(http.EnableGA),
         ssl = {
-          def storeConfig(typeKey: String, fileKey: String, passwordKey: String, algorithmKey: String) = {
-
-            val storeType = config.getString(typeKey).trimToOption
-            val storeFile = config.getString(fileKey).trimToOption
-            val storePassword = config.getString(passwordKey)
-            val storeAlgorithm = config.getString(algorithmKey).trimToOption
-
-            storeFile.map(StoreConfiguration(storeType, _, storePassword, storeAlgorithm))
-          }
-
           SslConfiguration(
-            keyStore = storeConfig(http.ssl.keyStore.Type, http.ssl.keyStore.File, http.ssl.keyStore.Password, http.ssl.keyStore.Algorithm),
-            trustStore = storeConfig(http.ssl.trustStore.Type, http.ssl.trustStore.File, http.ssl.trustStore.Password, http.ssl.trustStore.Algorithm)
+            keyStore = StoreConfiguration.newStoreConfiguration(config, http.ssl.keyStore.Type, http.ssl.keyStore.File, http.ssl.keyStore.Password, http.ssl.keyStore.Algorithm),
+            trustStore = StoreConfiguration.newStoreConfiguration(config, http.ssl.trustStore.Type, http.ssl.trustStore.File, http.ssl.trustStore.Password, http.ssl.trustStore.Algorithm)
           )
         },
         ahc = AhcConfiguration(
@@ -307,9 +297,8 @@ case class CssConfiguration(
 )
 
 case class DirectoryConfiguration(
-    data:        String,
-    bodies:      String,
-    sources:     String,
+    simulations: String,
+    resources:   String,
     binaries:    Option[String],
     reportsOnly: Option[String],
     results:     String
@@ -383,6 +372,18 @@ case class SslConfiguration(
     trustStore: Option[StoreConfiguration]
 )
 
+object StoreConfiguration {
+
+  def newStoreConfiguration(config: Config, typeKey: String, fileKey: String, passwordKey: String, algorithmKey: String): Option[StoreConfiguration] = {
+
+    val storeType = config.getString(typeKey).trimToOption
+    val storeFile = config.getString(fileKey).trimToOption
+    val storePassword = config.getString(passwordKey)
+    val storeAlgorithm = config.getString(algorithmKey).trimToOption
+    storeFile.map(StoreConfiguration(storeType, _, storePassword, storeAlgorithm))
+  }
+}
+
 case class StoreConfiguration(
     storeType: Option[String],
     file:      String,
@@ -435,15 +436,15 @@ case class GraphiteDataWriterConfiguration(
 // [fl]
 
 case class GatlingConfiguration(
-    core:      CoreConfiguration,
-    charting:  ChartingConfiguration,
-    http:      HttpConfiguration,
-    jms:       JmsConfiguration,
-    data:      DataConfiguration,
+    core:     CoreConfiguration,
+    charting: ChartingConfiguration,
+    http:     HttpConfiguration,
+    jms:      JmsConfiguration,
+    data:     DataConfiguration,
     // [fl]
     //
     // [fl]
-    config:    Config
+    config: Config
 ) {
   def resolve[T](value: T): T = value
 

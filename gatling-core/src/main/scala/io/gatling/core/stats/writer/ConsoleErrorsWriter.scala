@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.stats.writer
 
 import io.gatling.commons.stats.ErrorStats
@@ -24,9 +25,9 @@ import com.dongxiguo.fastring.Fastring.Implicits._
  * Object for writing errors statistics to the console.
  */
 object ConsoleErrorsWriter {
-  val ErrorCountLen = 14
-  val ErrorMsgLen = ConsoleSummary.OutputLength - ErrorCountLen
-  val TextLen = ErrorMsgLen - 4
+  private val ErrorCountLen = 14
+  private val ErrorMsgLen = ConsoleSummary.OutputLength - ErrorCountLen
+  private val TextLen = ErrorMsgLen - 4
 
   def formatPercent(percent: Double): String = f"$percent%3.2f"
 

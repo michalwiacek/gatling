@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.http
 
+import io.gatling.commons.util.ClockSingleton.nowMillis
 import io.gatling.recorder.http.flows.MitmMessage.{ RequestReceived, ServerChannelInactive }
 import io.gatling.recorder.http.flows._
 import io.gatling.recorder.http.ssl.SslServerContext
@@ -38,7 +40,8 @@ class ServerHandler(
   @volatile private var remote: Remote = _
   @volatile private var mitmActor: ActorRef = _
 
-  override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit =
+  override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = {
+    val sendTimestamp = nowMillis
     msg match {
       case request: FullHttpRequest =>
         if (mitmActor == null) {
@@ -50,25 +53,15 @@ class ServerHandler(
             }
             Remote.fromAbsoluteUri(firstRequestUriWithScheme)
           }
-          mitmActor =
-            if (https) {
-              outgoingProxy match {
-                case Some(proxy) => system.actorOf(Props(new SecuredWithProxyMitmActor(ctx.channel, clientBootstrap, sslServerContext, proxy, trafficLogger, httpClientCodecFactory)))
-                case _           => system.actorOf(Props(new SecuredNoProxyMitmActor(ctx.channel, clientBootstrap, sslServerContext, trafficLogger)))
-              }
-            } else {
-              outgoingProxy match {
-                case Some(proxy) => system.actorOf(Props(new PlainWithProxyMitmActor(ctx.channel, clientBootstrap, proxy, trafficLogger)))
-                case _           => system.actorOf(Props(new PlainNoProxyMitmActor(ctx.channel, clientBootstrap, trafficLogger)))
-              }
-            }
+          mitmActor = system.actorOf(Props(MitmActor(outgoingProxy, clientBootstrap, sslServerContext, trafficLogger, httpClientCodecFactory, ctx.channel, https)))
         }
 
-        trafficLogger.logRequest(ctx.channel.id, request, remote, https)
+        trafficLogger.logRequest(ctx.channel.id, request, remote, https, sendTimestamp)
         mitmActor ! RequestReceived(request.retain())
 
       case unknown => logger.warn(s"Received unknown message: $unknown")
     }
+  }
 
   override def channelInactive(ctx: ChannelHandlerContext): Unit =
     if (mitmActor != null) {

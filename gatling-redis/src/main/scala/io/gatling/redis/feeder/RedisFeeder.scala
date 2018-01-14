@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.redis.feeder
 
-import io.gatling.core.feeder.{ FeederBuilder, Feeder }
-import io.gatling.core.structure.ScenarioContext
+import io.gatling.core.feeder.FeederBuilder
 
 import com.redis.{ RedisClient, RedisClientPool }
 
@@ -40,18 +40,13 @@ object RedisFeeder {
   // SRANDMEMBER Redis command
   def SRANDMEMBER(redisClient: RedisClient, key: String) = redisClient.srandmember(key)
 
-  def apply(clientPool: RedisClientPool, key: String, redisCommand: RedisCommand = LPOP): FeederBuilder[String] =
-    new FeederBuilder[String] {
-
-      def build(ctx: ScenarioContext): Feeder[String] = {
-        ctx.system.registerOnTermination(clientPool.close)
-
-        def next = clientPool.withClient { client =>
-          val value = redisCommand(client, key)
-          value.map(value => Map(key -> value))
-        }
-
-        Iterator.continually(next).takeWhile(_.isDefined).map(_.get)
+  def apply(clientPool: RedisClientPool, key: String, redisCommand: RedisCommand = LPOP): FeederBuilder =
+    () => {
+      def next = clientPool.withClient { client =>
+        val value = redisCommand(client, key)
+        value.map(value => Map(key -> value))
       }
+
+      Iterator.continually(next).takeWhile(_.isDefined).map(_.get)
     }
 }

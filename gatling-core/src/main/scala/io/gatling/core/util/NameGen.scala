@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.util
 
 import java.util.concurrent.atomic.AtomicLong
@@ -24,5 +25,5 @@ object NameGen {
 trait NameGen {
   import NameGen._
 
-  def genName(base: String) = base + "-" + IdGen.incrementAndGet
+  def genName(base: String): String = base + "-" + IdGen.incrementAndGet
 }

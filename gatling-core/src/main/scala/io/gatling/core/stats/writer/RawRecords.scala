@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.stats.writer
 
 sealed abstract class RecordHeader(val value: String)
@@ -24,7 +25,7 @@ object ErrorRecordHeader extends RecordHeader("ERROR")
 object AssertionRecordHeader extends RecordHeader("ASSERTION")
 
 sealed abstract class RawRecord(header: RecordHeader, recordLength: Int) {
-  def unapply(array: Array[String]) =
+  def unapply(array: Array[String]): Option[Array[String]] =
     if (array.length >= recordLength && array(0) == header.value) Some(array) else None
 }
 

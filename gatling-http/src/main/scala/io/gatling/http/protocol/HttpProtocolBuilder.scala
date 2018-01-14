@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.protocol
 
 import java.net.InetAddress
@@ -114,7 +115,7 @@ case class HttpProtocolBuilder(protocol: HttpProtocol) {
 
   // responsePart
   def disableFollowRedirect = this.modify(_.protocol.responsePart.followRedirect).setTo(false)
-  def maxRedirects(max: Int) = this.modify(_.protocol.responsePart.maxRedirects).setTo(Some(max))
+  def maxRedirects(max: Int) = this.modify(_.protocol.responsePart.maxRedirects).setTo(max)
   def strict302Handling = this.modify(_.protocol.responsePart.strict302Handling).setTo(true)
   def disableResponseChunksDiscarding = this.modify(_.protocol.responsePart.discardResponseChunks).setTo(false)
   def extraInfoExtractor(f: ExtraInfoExtractor) = this.modify(_.protocol.responsePart.extraInfoExtractor).setTo(Some(f))

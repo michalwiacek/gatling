@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.action
 
 import scala.annotation.tailrec
@@ -55,10 +56,10 @@ object BlockExit {
     case Nil => BlockExit(exitAction, session, groupsToClose)
 
     case head :: tail => head match {
-      case `until`               => BlockExit(exitAction, session, groupsToClose)
-      case group: GroupBlock     => blockExit(tail, until, exitAction, session.exitGroup, group :: groupsToClose)
-      case tryMap: TryMaxBlock   => blockExit(tail, until, exitAction, session.exitTryMax, groupsToClose)
-      case counter: CounterBlock => blockExit(tail, until, exitAction, session.exitLoop, groupsToClose)
+      case `until`           => BlockExit(exitAction, session, groupsToClose)
+      case group: GroupBlock => blockExit(tail, until, exitAction, session.exitGroup, group :: groupsToClose)
+      case _: TryMaxBlock    => blockExit(tail, until, exitAction, session.exitTryMax, groupsToClose)
+      case _: CounterBlock   => blockExit(tail, until, exitAction, session.exitLoop, groupsToClose)
     }
   }
 

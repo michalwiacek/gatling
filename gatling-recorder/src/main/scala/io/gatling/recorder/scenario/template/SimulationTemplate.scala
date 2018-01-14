@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.scenario.template
 
 import com.dongxiguo.fastring.Fastring.Implicits._
@@ -36,15 +37,13 @@ private[scenario] object SimulationTemplate {
 
     def renderHeaders = {
 
-      def printHeaders(headers: Seq[(String, String)]) = {
-        if (headers.size > 1) {
+      def printHeaders(headers: Seq[(String, String)]) = headers match {
+        case Seq((name, value)) =>
+          fast"Map(${protectWithTripleQuotes(name)} -> ${protectWithTripleQuotes(value)})"
+        case _ =>
           val mapContent = headers.map { case (name, value) => fast"		${protectWithTripleQuotes(name)} -> ${protectWithTripleQuotes(value)}" }.mkFastring(",\n")
           fast"""Map(
 $mapContent)"""
-        } else {
-          val (name, value) = headers(0)
-          fast"Map(${protectWithTripleQuotes(name)} -> ${protectWithTripleQuotes(value)})"
-        }
       }
 
       headers
@@ -88,7 +87,7 @@ $mapContent)"""
               fast"val chain_$i = $chainContent"
           }.mkFastring("\n\n")
 
-          val chainsList = (for (i <- 0 until chains.size) yield fast"chain_$i").mkFastring(", ")
+          val chainsList = chains.indices.map(i => fast"chain_$i").mkFastring(", ")
 
           fast"""$chainElements
 					
@@ -100,8 +99,8 @@ $mapContent)"""
 
     def flatScenarioElements(scenarioElements: Either[Seq[ScenarioElement], Seq[Seq[ScenarioElement]]]): Seq[ScenarioElement] =
       scenarioElements match {
-        case Left(scenarioElements)  => scenarioElements
-        case Right(scenarioElements) => scenarioElements.flatten
+        case Left(elements)  => elements
+        case Right(elements) => elements.flatten
       }
 
     val extractedUris = new ExtractedUris(flatScenarioElements(scenarioElements))

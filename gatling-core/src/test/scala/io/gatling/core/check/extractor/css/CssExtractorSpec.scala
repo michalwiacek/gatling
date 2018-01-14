@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.check.extractor.css
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -26,12 +27,12 @@ import jodd.lagarto.dom.NodeSelector
 
 class CssExtractorSpec extends BaseSpec with ValidationValues {
 
-  implicit val configuration = GatlingConfiguration.loadForTest()
-  val cssSelectors = new CssSelectors
+  private implicit val configuration = GatlingConfiguration.loadForTest()
+  private val cssSelectors = new CssSelectors
 
-  def prepared(file: String): NodeSelector = withCloseable(getClass.getResourceAsStream(file)) { is =>
+  private def prepared(file: String): NodeSelector = withCloseable(getClass.getResourceAsStream(file)) { is =>
     val string = is.toString(UTF_8)
-    cssSelectors.parse(string)
+    cssSelectors.parse(string.toCharArray)
   }
 
   "CssExtractor" should "support browser conditional tests and behave as a non-IE browser" in {
@@ -117,7 +118,7 @@ class CssExtractorSpec extends BaseSpec with ValidationValues {
   it should "support filtered value with dots" in {
     val cssExtractor = newCssSingleExtractor[String]("input[name='javax.faces.ViewState']", Some("value"), 0, cssSelectors)
     cssExtractor(cssSelectors.parse(
-      """<input type="hidden" name="javax.faces.ViewState" value="foo">"""
+      """<input type="hidden" name="javax.faces.ViewState" value="foo">""".toCharArray
     )).succeeded shouldBe Some("foo")
   }
 }

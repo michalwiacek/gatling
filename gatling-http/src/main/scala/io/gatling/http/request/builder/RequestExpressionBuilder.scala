@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.request.builder
+
+import java.nio.charset.Charset
 
 import scala.util.control.NonFatal
 
 import io.gatling.commons.validation._
 import io.gatling.core.CoreComponents
+import io.gatling.core.config.GatlingConfiguration
 import io.gatling.core.session._
 import io.gatling.http.HeaderNames
 import io.gatling.http.ahc.{ AhcChannelPoolPartitioning, AhcRequestBuilder }
+import io.gatling.http.cache.HttpCaches
 import io.gatling.http.cookie.CookieSupport
-import io.gatling.http.protocol.HttpComponents
+import io.gatling.http.protocol.{ HttpComponents, HttpProtocol }
 import io.gatling.http.referer.RefererHandling
 import io.gatling.http.util.HttpHelper
 
 import com.typesafe.scalalogging.LazyLogging
-import org.asynchttpclient.{ Realm, Request }
+import org.asynchttpclient.{ Realm, Request, SignatureCalculator }
 import org.asynchttpclient.uri.Uri
 
 object RequestExpressionBuilder {
-  val BuildRequestErrorMapper = "Failed to build request: " + _
+  val BuildRequestErrorMapper: String => String = "Failed to build request: " + _
 
   type RequestBuilderConfigureRaw = Session => AhcRequestBuilder => AhcRequestBuilder
   type RequestBuilderConfigure = Session => AhcRequestBuilder => Validation[AhcRequestBuilder]
@@ -45,15 +50,15 @@ abstract class RequestExpressionBuilder(commonAttributes: CommonAttributes, core
   extends LazyLogging {
 
   import RequestExpressionBuilder._
-  protected val protocol = httpComponents.httpProtocol
-  protected val httpCaches = httpComponents.httpCaches
-  protected val configuration = coreComponents.configuration
-  protected val charset = configuration.core.charset
-  protected val headers = protocol.requestPart.headers ++ commonAttributes.headers
-  private val refererHeaderIsUndefined = !headers.contains(HeaderNames.Referer)
-  protected val contentTypeHeaderIsUndefined = !headers.contains(HeaderNames.ContentType)
-  private val disableUrlEncoding = commonAttributes.disableUrlEncoding.getOrElse(protocol.requestPart.disableUrlEncoding)
-  private val signatureCalculatorExpression = commonAttributes.signatureCalculator.orElse(protocol.requestPart.signatureCalculator)
+  protected val protocol: HttpProtocol = httpComponents.httpProtocol
+  protected val httpCaches: HttpCaches = httpComponents.httpCaches
+  protected val configuration: GatlingConfiguration = coreComponents.configuration
+  protected val charset: Charset = configuration.core.charset
+  protected val headers: Map[String, Expression[String]] = protocol.requestPart.headers ++ commonAttributes.headers
+  private val refererHeaderIsUndefined: Boolean = !headers.contains(HeaderNames.Referer)
+  protected val contentTypeHeaderIsUndefined: Boolean = !headers.contains(HeaderNames.ContentType)
+  private val disableUrlEncoding: Boolean = commonAttributes.disableUrlEncoding.getOrElse(protocol.requestPart.disableUrlEncoding)
+  private val signatureCalculatorExpression: Option[Expression[SignatureCalculator]] = commonAttributes.signatureCalculator.orElse(protocol.requestPart.signatureCalculator)
 
   protected def baseUrl: Session => Option[String] = httpCaches.baseUrl
 
@@ -89,20 +94,7 @@ abstract class RequestExpressionBuilder(commonAttributes: CommonAttributes, core
 
   // note: DNS cache is supposed to be set early
   private def configureNameResolver(session: Session, requestBuilder: AhcRequestBuilder): Unit =
-    configuration.resolve(
-      // [fl]
-      //
-      //
-      //
-      //
-      //
-      //
-      //
-      //
-      //
-      // [fl]
-      httpCaches.nameResolver(session).foreach(requestBuilder.setNameResolver)
-    )
+    configuration.resolve(httpCaches.nameResolver(session).foreach(requestBuilder.setNameResolver))
 
   private def configureChannelPoolPartitioning(session: Session, requestBuilder: AhcRequestBuilder): Unit =
     if (!protocol.enginePart.shareConnections)

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.check.extractor.jsonpath
 
 import scala.annotation.implicitNotFound
-import scala.collection.JavaConverters._
-import scala.collection.breakOut
 
 import io.gatling.core.json.Json
 
@@ -67,20 +66,20 @@ trait LowPriorityJsonFilterImplicits {
 
   implicit val jListJsonFilter = new JsonFilter[Seq[Any]] {
     val filter: PartialFunction[Any, Seq[Any]] = {
-      case e: java.util.List[_] => e.asScala
+      case e: java.util.List[_] => Json.asScala(e).asInstanceOf[Seq[Any]]
       case null                 => null.asInstanceOf[Seq[Any]]
     }
   }
 
   implicit val jMapJsonFilter = new JsonFilter[Map[String, Any]] {
     val filter: PartialFunction[Any, Map[String, Any]] = {
-      case e: java.util.Map[_, _] => e.asScala.map { case (key, value) => key.toString -> value }(breakOut)
+      case e: java.util.Map[_, _] => Json.asScala(e).asInstanceOf[Map[String, Any]]
       case null                   => null.asInstanceOf[Map[String, Any]]
     }
   }
 
   implicit val anyJsonFilter = new JsonFilter[Any] {
-    val filter: PartialFunction[Any, Any] = { case e => e }
+    val filter: PartialFunction[Any, Any] = { case e => Json.asScala(e) }
   }
 }
 

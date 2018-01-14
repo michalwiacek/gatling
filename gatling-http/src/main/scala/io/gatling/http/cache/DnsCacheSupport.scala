@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.cache
 
 import java.net.InetAddress
@@ -47,7 +48,6 @@ trait DnsCacheSupport {
     if (hostAliases.isEmpty) {
       if (httpProtocol.enginePart.perUserNameResolution) {
         // use per user resolver
-        val defaultDnsNameResolver = httpEngine.defaultDnsNameResolver
         configuration.resolve(
           // [fl]
           //
@@ -59,12 +59,8 @@ trait DnsCacheSupport {
           //
           //
           //
-          //
-          //
-          //
-          //
           // [fl]
-          _.set(DnsNameResolverAttributeName, new CacheOverrideNameResolver(defaultDnsNameResolver, new DefaultDnsCache))
+          _.set(DnsNameResolverAttributeName, new CacheOverrideNameResolver(httpEngine.ahcFactory.defaultDnsNameResolver, new DefaultDnsCache))
         )
 
       } else if (UseDefaultJavaEternalDnsCache) {
@@ -78,7 +74,6 @@ trait DnsCacheSupport {
     } else {
       if (httpProtocol.enginePart.perUserNameResolution) {
         // use per user resolver
-        val defaultDnsNameResolver = httpEngine.defaultDnsNameResolver
         configuration.resolve(
           // [fl]
           //
@@ -90,12 +85,8 @@ trait DnsCacheSupport {
           //
           //
           //
-          //
-          //
-          //
-          //
           // [fl]
-          _.set(DnsNameResolverAttributeName, new AliasesAwareNameResolver(hostAliases, defaultDnsNameResolver))
+          _.set(DnsNameResolverAttributeName, new AliasesAwareNameResolver(hostAliases, httpEngine.ahcFactory.defaultDnsNameResolver))
         )
 
       } else if (UseDefaultJavaEternalDnsCache) {

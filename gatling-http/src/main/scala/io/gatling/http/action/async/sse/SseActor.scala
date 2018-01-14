@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.http.action.async.sse
 
 import scala.collection.mutable
@@ -129,9 +130,9 @@ class SseActor(sseName: String, statsEngine: StatsEngine) extends AsyncProtocolA
         }
       }
 
-    case Reconciliate(requestName, next, session) =>
-      logger.debug(s"Reconciliating sse '$sseName'")
-      reconciliate(tx, next, session, goToOpenState(sseStream))
+    case Reconcile(_, next, session) =>
+      logger.debug(s"Reconciling sse '$sseName'")
+      reconcile(tx, next, session, goToOpenState(sseStream))
 
     case Close(requestName, next, session) =>
       logger.debug(s"Closing sse '$sseName' for user #${session.userId}")

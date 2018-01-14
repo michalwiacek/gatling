@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.http.ssl
 
 import io.gatling.commons.util.ClassSimpleNameToString
@@ -27,7 +28,7 @@ private[recorder] object KeyStoreType {
 
   val AllKeyStoreTypes = List(JKS, PKCS12)
 
-  def apply(s: String) = AllKeyStoreTypes.find(_.toString == s).getOrElse {
+  def apply(s: String): KeyStoreType = AllKeyStoreTypes.find(_.toString == s).getOrElse {
     throw new IllegalArgumentException(s"$s is not a valid keystore type")
   }
 }

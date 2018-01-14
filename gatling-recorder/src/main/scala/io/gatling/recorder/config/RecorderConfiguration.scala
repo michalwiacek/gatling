@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.recorder.config
 
 import java.io.FileNotFoundException
@@ -30,28 +31,25 @@ import io.gatling.commons.util.StringHelper.RichString
 import io.gatling.core.config.GatlingConfiguration
 import io.gatling.core.config.GatlingFiles._
 import io.gatling.core.filter.{ BlackList, Filters, WhiteList }
-import io.gatling.recorder.http.ssl.{ KeyStoreType, HttpsMode }
+import io.gatling.recorder.http.ssl.{ HttpsMode, KeyStoreType }
 
-import com.typesafe.config.{ ConfigFactory, Config, ConfigRenderOptions }
+import com.typesafe.config.{ Config, ConfigFactory, ConfigRenderOptions }
 import com.typesafe.scalalogging.StrictLogging
-
 import scala.util.control.NonFatal
 
 private[recorder] object RecorderConfiguration extends StrictLogging {
 
   implicit class IntOption(val value: Int) extends AnyVal {
-    def toOption = if (value != 0) Some(value) else None
+    def toOption: Option[Int] = if (value != 0) Some(value) else None
   }
 
-  val Remove4SpacesRegex = """\s{4}""".r
-
-  val RenderOptions = ConfigRenderOptions.concise.setFormatted(true).setJson(false)
+  private val RenderOptions = ConfigRenderOptions.concise.setFormatted(true).setJson(false)
 
   var configFile: Option[Path] = None
 
   implicit var configuration: RecorderConfiguration = _
 
-  implicit val gatlingConfiguration = GatlingConfiguration.load()
+  implicit val gatlingConfiguration: GatlingConfiguration = GatlingConfiguration.load()
 
   private[this] def getClassLoader = Thread.currentThread.getContextClassLoader
   private[this] def getDefaultConfig(classLoader: ClassLoader) =
@@ -110,14 +108,14 @@ private[recorder] object RecorderConfiguration extends StrictLogging {
     def getOutputFolder(folder: String) = {
       folder.trimToOption match {
         case Some(f)                               => f
-        case _ if sys.env.contains("GATLING_HOME") => sourcesDirectory.toFile.toString
+        case _ if sys.env.contains("GATLING_HOME") => resourcesDirectory.toFile.toString
         case _                                     => userHome
       }
     }
 
     def getBodiesFolder =
       if (config.hasPath(core.BodiesFolder)) config.getString(core.BodiesFolder)
-      else bodiesDirectory.toFile.toString
+      else resourcesDirectory.toFile.toString
 
     RecorderConfiguration(
       core = CoreConfiguration(

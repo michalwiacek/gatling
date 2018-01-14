@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.core.util.cache
 
 import io.gatling.commons.util.TypeCaster
@@ -54,9 +55,11 @@ class SessionCacheHandler[K, V](cacheName: String, maxCapacity: Int) {
 
   def addEntry(session: Session, key: K, value: V): Session = {
     val cache = getOrCreateCache(session)
-    cache.get(key) match {
-      case Some(`value`) => session
-      case _             => session.set(cacheName, cache + (key -> value))
+    val newCache = cache.put(key, value)
+    if (newCache eq cache) {
+      session
+    } else {
+      session.set(cacheName, newCache)
     }
   }
 
@@ -65,7 +68,14 @@ class SessionCacheHandler[K, V](cacheName: String, maxCapacity: Int) {
 
   def removeEntry(session: Session, key: K): Session =
     getCache(session) match {
-      case Some(store) => session.set(cacheName, store - key)
-      case _           => session
+      case Some(cache) =>
+        val newCache = cache.remove(key)
+        if (newCache eq cache) {
+          session
+        } else {
+          session.set(cacheName, newCache)
+        }
+
+      case _ => session
     }
 }

@@ -1,5 +1,5 @@
-/**
- * Copyright 2011-2017 GatlingCorp (http://gatling.io)
+/*
+ * Copyright 2011-2018 GatlingCorp (http://gatling.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gatling.compiler
 
 import java.io.{ File => JFile }
@@ -28,18 +29,17 @@ import io.gatling.compiler.config.CompilerConfiguration
 import io.gatling.compiler.config.ConfigUtils._
 
 import org.slf4j.LoggerFactory
-import sbt.internal.inc.{ classpath, AnalysisStore => _, _ }
+import sbt.internal.inc.{ AnalysisStore => _, CompilerCache => _, _ }
 import sbt.util.{ InterfaceUtil, Level, Logger => SbtLogger }
 import sbt.util.ShowLines._
-import xsbti.compile.{ FileAnalysisStore => _, ScalaInstance => _, _ }
-
 import xsbti.Problem
+import xsbti.compile.{ FileAnalysisStore => _, ScalaInstance => _, _ }
 
 object ZincCompiler extends App with ProblemStringFormats {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private def manifestClasspath(): Array[JFile] = {
+  private def manifestClasspath: Array[JFile] = {
 
     val manifests = Thread.currentThread.getContextClassLoader.getResources("META-INF/MANIFEST.MF").asScala
       .map { url =>
@@ -52,7 +52,7 @@ object ZincCompiler extends App with ProblemStringFormats {
       }
 
     val classPathEntries = manifests.collect {
-      case manifest if Option(manifest.getMainAttributes.getValue(Attributes.Name.MAIN_CLASS)) == Some("io.gatling.mojo.MainWithArgsInFile") =>
+      case manifest if Option(manifest.getMainAttributes.getValue(Attributes.Name.MAIN_CLASS)).contains("io.gatling.mojo.MainWithArgsInFile") =>
         manifest.getMainAttributes.getValue(Attributes.Name.CLASS_PATH).split(" ").map(url => new JFile(new URL(url).toURI))
     }
 
@@ -65,18 +65,16 @@ object ZincCompiler extends App with ProblemStringFormats {
       .getOrElse(throw new RuntimeException(s"Can't find the jar matching $regex"))
 
   private def doCompile(): Unit = {
-    // FIXME will not work with Java 9, see https://blog.codefx.org/java/java-9-migration-guide/#Casting-To-URL-Class-Loader
-    val classLoader = Thread.currentThread.getContextClassLoader.asInstanceOf[URLClassLoader]
     val configuration = CompilerConfiguration.configuration(args)
     Files.createDirectories(configuration.binariesDirectory)
 
     val classpath: Array[JFile] = {
-      val files = classLoader.getURLs.map(url => new JFile(url.toURI))
+      val files = System.getProperty("java.class.path").split(JFile.pathSeparator).map(new JFile(_))
 
       if (files.exists(_.getName.startsWith("gatlingbooter"))) {
         // we've been started by the manifest-only jar,
         // we have to switch the manifest Class-Path entries
-        manifestClasspath()
+        manifestClasspath
       } else {
         files
       }
@@ -113,7 +111,14 @@ object ZincCompiler extends App with ProblemStringFormats {
 
       override def log(level: Level.Value, message: => String): Unit =
         level match {
-          case Level.Error => logger.error(message)
+          case Level.Error =>
+            if (message.startsWith("## Exception when compiling")) {
+              // see IncrementalCompilerImpl.handleCompilationError
+              // Exception with stacktrace will be thrown and logged properly below in try/catch block
+              logger.error(message.substring(0, message.indexOf("\n")))
+            } else {
+              logger.error(message)
+            }
           case Level.Warn  => logger.warn(message)
           case Level.Info  => logger.info(message)
           case Level.Debug => logger.debug(message)
